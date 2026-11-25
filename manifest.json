@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Nail360PRO Support Toolkit",
   "short_name": "N360 Support",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Local, read-only QA toolkit for comparing salon appointment and service lists.",
   "minimum_chrome_version": "116",
   "permissions": [
@@ -19,5 +19,8 @@
   },
   "side_panel": {
     "default_path": "panel.html"
-  }
+  },
+  "host_permissions": [
+    "https://dev.nail360.info/*"
+  ]
 }

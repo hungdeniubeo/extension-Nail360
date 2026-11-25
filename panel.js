@@ -43,7 +43,12 @@ async function tabAccess(){
   const [tab]=await chrome.tabs.query({active:true,lastFocusedWindow:true});
   if(!tab?.id)throw Error('Không tìm thấy tab web đang mở.');
   if(tab.url){const url=new URL(tab.url);if(!['https:','http:'].includes(url.protocol))throw Error('Hãy mở tab website NAIL360PRO trước.');if(!allowedHost(url.hostname)&&!window.confirm('Tab hiện tại không thuộc domain Nail360 đã biết. Chỉ tiếp tục nếu đây là môi trường salon/test mà mày được phép kiểm tra.'))throw Error('Đã hủy truy cập trang.');}
-  try{await chrome.scripting.executeScript({target:{tabId:tab.id},files:['capture.js']});}catch(err){throw Error('Chrome chưa cấp quyền đọc tab này. Bấm icon N360 Support trên thanh công cụ Chrome khi đang ở trang cần chụp, sau đó thử lại. (Có thể trang không cho phép extension.)');}
+  try{await chrome.scripting.executeScript({target:{tabId:tab.id},files:['capture.js']});}catch(err){
+    const detail=String(err?.message||err||'Unknown error');
+    const permissionError=/cannot access|cannot be scripted|missing host permission|not allowed|permission|access denied/i.test(detail);
+    if(permissionError)throw Error('Chrome đang chặn quyền đọc trang. Kiểm tra Site access (Quyền truy cập trang web) của N360 Support và cho phép trên dev.nail360.info; sau đó tải lại trang. Với domain khác, bấm icon extension tại tab đó. Chi tiết: '+detail);
+    throw Error('Không chạy được bộ đọc bảng. Chi tiết: '+detail);
+  }
   const [where]=await chrome.scripting.executeScript({target:{tabId:tab.id},func:()=>({hostname:location.hostname,protocol:location.protocol})});
   if(!where?.result)throw Error('Không đọc được địa chỉ trang.');
   if(!tab.url&&!allowedHost(where.result.hostname)&&!window.confirm('Trang này không thuộc domain Nail360 đã biết. Chỉ tiếp tục nếu được phép kiểm tra.'))throw Error('Đã hủy truy cập trang.');

@@ -11,8 +11,9 @@ HOLD="$BASE/hold-version"
 LOCK="$BASE/.lock"
 LABEL="com.hungdeniubeo.n360-support-updater"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
-RAW="https://raw.githubusercontent.com/hungdeniubeo/extension-Nail360/main/manifest.json"
-ARCHIVE="https://codeload.github.com/hungdeniubeo/extension-Nail360/zip/refs/heads/main"
+API="https://api.github.com/repos/hungdeniubeo/extension-Nail360/commits/main"
+RAW_BASE="https://raw.githubusercontent.com/hungdeniubeo/extension-Nail360"
+ARCHIVE_BASE="https://codeload.github.com/hungdeniubeo/extension-Nail360/zip"
 STAGE=""
 say(){ printf '%s\n' "$*"; }
 die(){ say "N360: $*" >&2; exit 1; }
@@ -22,7 +23,7 @@ notify(){
   fi
 }
 fetch(){
-  /usr/bin/curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --connect-timeout 15 --max-time 60 --retry 1 --max-filesize 20000000 --output "$2" "$1"
+  /usr/bin/curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --header "Cache-Control: no-cache" --user-agent "N360-Updater/2" --connect-timeout 15 --max-time 60 --retry 1 --max-filesize 20000000 --output "$2" "$1"
 }
 # Reject permission/config changes instead of silently expanding Chrome access.
 manifest_version(){
@@ -32,7 +33,9 @@ manifest_version(){
     my %keys=map {$_=>1} qw(manifest_version name short_name version version_name description minimum_chrome_version permissions host_permissions action background side_panel icons);
     die "Manifest fields changed; review manually\n" if grep {!$keys{$_}} keys %$m;
     my $json=JSON::PP->new->canonical;
-    for my $pair ([permissions=>[qw(activeTab scripting sidePanel storage)]],[host_permissions=>["https://dev.nail360.info/*"]]) {
+    my $p=$m->{permissions};
+    die "Permission scope changed; review manually\n" unless ref($p) eq "ARRAY" && ($json->encode([sort @$p]) eq $json->encode([sort qw(activeTab scripting sidePanel storage)]) || $json->encode([sort @$p]) eq $json->encode([sort qw(activeTab scripting sidePanel storage alarms)]));
+    for my $pair ([host_permissions=>["https://dev.nail360.info/*"]]) {
       my($k,$expected)=@$pair;
       die "Permission scope changed: $k; review manually\n" unless ref($m->{$k}) eq "ARRAY" && $json->encode([sort @{$m->{$k}}]) eq $json->encode([sort @$expected]);
     }
@@ -119,7 +122,7 @@ stage_archive(){
   done
 }
 check_update(){
-  local current="0" candidate actual hold="0"
+  local current="0" candidate actual hold="0" commit rel
   lock
   recover_swap
   STAGE=$(mktemp -d "$BASE/.stage.XXXXXX")
@@ -127,20 +130,30 @@ check_update(){
     current=$(manifest_version "$ACTIVE/manifest.json")
   fi
   [ ! -f "$HOLD" ] || read -r hold < "$HOLD"
-  fetch "$RAW" "$STAGE/remote.json"
+  # Resolve main once, then read both manifest and ZIP from the same immutable commit.
+  fetch "$API" "$STAGE/head.json"
+  commit=$(/usr/bin/perl -MJSON::PP -e 'local $/;my $m=decode_json(<>);my $s=$m->{sha}//"";die "Invalid GitHub commit\n" unless $s =~ /\A[0-9a-f]{40}\z/;print "$s\n"' "$STAGE/head.json")
+  fetch "$RAW_BASE/$commit/manifest.json" "$STAGE/remote.json"
   candidate=$(manifest_version "$STAGE/remote.json")
-  if ! newer "$candidate" "$current" || ! newer "$candidate" "$hold"; then return 0; fi
-  fetch "$ARCHIVE" "$STAGE/repo.zip"
+  say "N360: GitHub $candidate ($commit); disk $current."
+  if ! newer "$candidate" "$current"; then say "N360: no newer version; disk kept."; return 0; fi
+  if ! newer "$candidate" "$hold"; then say "N360: held version $hold; disk kept."; return 0; fi
+  fetch "$ARCHIVE_BASE/$commit" "$STAGE/repo.zip"
   stage_archive "$STAGE/repo.zip" "$STAGE/new"
   actual=$(manifest_version "$STAGE/new/manifest.json")
-  [ "$actual" = "$candidate" ] || die "Version changed during download; retry later."
+  [ "$actual" = "$candidate" ] && cmp -s "$STAGE/remote.json" "$STAGE/new/manifest.json" || die "Commit manifest mismatch; disk kept."
+  if newer "$actual" "1.2.0"; then
+    for rel in qa-core.js qa-page.js studio.js admin.html admin.css admin.js updates.js audit-core.js audit-dom.js auto-reload.js; do
+      [ -s "$STAGE/new/$rel" ] || die "Missing runtime asset: $rel"
+    done
+  fi
   # Chrome panel reads this local marker to detect staged updates.
   printf '{"version":"%s"}\n' "$actual" > "$STAGE/new/update-status.json"
   promote "$STAGE/new"
   rm -f "$HOLD"
   say "N360: downloaded $actual (previous: $current)."
   if [ "$current" != "0" ]; then
-    notify "Version $actual is ready. Save your work and click Reload extension in N360 Support."
+    notify "Version $actual is ready. N360 reloads automatically when idle; finish QA work first."
   fi
 }
 rollback(){
@@ -170,8 +183,22 @@ install_agent(){
     cp "$0" "$BASE/updater.sh"
   fi
   chmod 700 "$BASE/updater.sh"
-  # Only start scheduling after a successful initial installation.
-  /bin/bash "$BASE/updater.sh" check
+  # On a fresh install, require a successful download. Existing installs can
+  # schedule a retry if the network is temporarily unavailable.
+  if ! /bin/bash "$BASE/updater.sh" check; then
+    [ -f "$ACTIVE/manifest.json" ] || die "Initial download failed."
+    say "N360: GitHub check failed; installed version retained, retry scheduled."
+  fi
+  register_agent
+  say "N360 installed at: $ACTIVE"
+  say "Load this folder once in Chrome if not already loaded."
+  /usr/bin/open "$ACTIVE" >/dev/null 2>&1 || true
+  /usr/bin/open -a "Google Chrome" "chrome://extensions" >/dev/null 2>&1 || true
+}
+register_agent(){
+  local uid
+  uid=$(id -u)
+  mkdir -p "$BASE" "$HOME/Library/LaunchAgents"
   /usr/bin/perl -e '
     sub x {my $s=shift;$s=~s/&/&amp;/g;$s=~s/</&lt;/g;$s=~s/>/&gt;/g;return $s}
     my($label,$script,$log)=map{x($_)}@ARGV;
@@ -181,12 +208,7 @@ install_agent(){
   /bin/launchctl bootout "gui/$uid/$LABEL" >/dev/null 2>&1 || true
   /bin/launchctl enable "gui/$uid/$LABEL"
   /bin/launchctl bootstrap "gui/$uid" "$PLIST"
-  say ""
-  say "N360 installed. Select this stable folder ONCE in chrome://extensions > Load unpacked:"
-  say "$ACTIVE"
-  say "After updates, save work and click Reload extension in the side panel."
-  /usr/bin/open "$ACTIVE" >/dev/null 2>&1 || true
-  /usr/bin/open -a "Google Chrome" "chrome://extensions" >/dev/null 2>&1 || true
+  say "N360: update agent registered (every 5 minutes)."
 }
 main(){
   [ "$(uname -s)" = "Darwin" ] || die "This installer is for macOS."

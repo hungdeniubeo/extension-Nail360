@@ -21,8 +21,8 @@
       const {version} = await res.json();
       if (typeof version !== 'string' || !/^\d+(?:\.\d+){0,3}$/.test(version)) return;
       status.textContent = version === current
-        ? 'Đang dùng v' + current + ' · Auto Updater'
-        : 'Đã đồng bộ v' + version + ' · Bấm tải lại để áp dụng';
+        ? 'Đang dùng v' + current + ' · Auto Update'
+        : 'Đã đồng bộ v' + version + ' · Tự reload khi QA rảnh (hoặc bấm tải lại)';
       status.classList.toggle('update-ready', version !== current);
     } catch {
       // An unpacked extension installed without the updater has no marker.

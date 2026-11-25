@@ -34,3 +34,6 @@ chrome.runtime.onMessage.addListener((m,sender,reply)=>{
   const task=qaQueue.then(()=>qaAction(m));qaQueue=task.catch(()=>{});
   task.then(data=>reply({ok:true,data}),err=>reply({ok:false,error:String(err.message||err)}));return true;
 });
+
+// Checks the local update marker even while the side panel is closed.
+importScripts('auto-reload.js');

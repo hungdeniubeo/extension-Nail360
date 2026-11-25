@@ -1,12 +1,12 @@
 # extension-Nail360
 
-# N360 QA Automation Studio v1.2.0
+# N360 QA Automation Studio v1.2.1
 
 Extension Chrome Manifest V3 độc lập dành cho hỗ trợ kỹ thuật / QA của salon NAIL360PRO. Không phải sản phẩm chính thức của Nail360PRO.
 
 ## Cài đặt
 
-**Khuyên dùng trên macOS:** cài [N360 Auto Updater](macos/README.md) một lần để tự đồng bộ phiên bản mới từ GitHub và tải lại bằng một nút trong side panel. Các bước dưới đây dành cho cách cài ZIP thủ công.
+**Khuyên dùng trên macOS:** cài [N360 Auto Updater](macos/README.md) một lần để tự đồng bộ phiên bản mới từ GitHub và tự reload khi QA rảnh (v1.2.1 trở lên). Các bước dưới đây dành cho cách cài ZIP thủ công.
 
 1. Tải ZIP từ nút Code > Download ZIP trên GitHub rồi giải nén. Dùng Chrome desktop 116 trở lên.
 2. Mở `chrome://extensions` trên thanh địa chỉ.
@@ -73,3 +73,11 @@ Bản source GitHub sử dụng logo SVG trong side panel và icon mặc định
 - Đồng bộ phiên bản từ repo public mỗi 5 phút khi phiên người dùng macOS đang hoạt động. Không cần Chrome Web Store, sudo hoặc token GitHub.
 - Có thư mục cài ổn định, kiểm tra phiên bản, sao lưu một phiên bản trước và rollback. Các bản nâng cấp thay đổi quyền/entrypoint cần kiểm tra thủ công.
 - Sau khi tải xong, lưu kết quả A/B nếu cần rồi bấm **Tải lại extension**. Chrome không tự áp dụng tất cả cập nhật unpacked ngay khi file thay đổi. Xem [hướng dẫn cài đặt và quản lý](macos/README.md).
+
+## v1.2.1 — Auto Update + Auto Reload (macOS)
+
+- One-time migration from v1.0.2–v1.2.0: replace the Mac updater and load v1.2.1 into the existing stable directory. This release adds only the `alarms` permission; old updaters intentionally refuse a permission change. Reload Chrome extension once after migrating. Do not uninstall it or clear local QA history.
+- LaunchAgent resolves the public GitHub main commit through the GitHub API every five minutes, fetches manifest and archive from that exact SHA, compares the manifest bytes, validates permissions and required runtime assets, retains one backup, and logs upstream and disk versions. Failed fetch or validation keeps the installed version. Future runtime releases must increase manifest version.
+- Chrome checks the on-disk update marker about once a minute (subject to Chrome alarm scheduling) even without the side panel. It automatically reloads a newer build only when all extension pages are closed, no A/B or captured page info is in session, and no visible embedded QA Studio is found in DEV tabs. If any context cannot be checked, it defers. Close QA/ admin, export and clear A/B if necessary, or choose the existing manual Reload button when ready. A rollback still requires manual reload. No website tab or browser restart is forced. An old injected overlay may need a normal page refresh before use.
+- Persistent QA reports and suites stay in `chrome.storage.local`; session data is not silently persisted to disk. A failed reload attempt is rate-limited. This uses a trusted public repository for personal unpacked development, not Chrome Web Store distribution or enterprise policy. Keep main protected, review each commit and secure the GitHub account. No new host access. Mac launchd, real Chrome alarm/reload behavior and access to the public GitHub endpoints still require verification on the Mac.
+- `node --test tests/*.cjs` (38 logic/mock tests); `bash tests/updater-commit-test.sh` (7 offline fixture cases). These are not real Chrome/macOS integration tests.

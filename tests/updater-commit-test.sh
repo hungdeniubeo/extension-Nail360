@@ -8,7 +8,7 @@ python - "$ROOT" "$TMP" <<'PY'
 import json, sys, zipfile
 from pathlib import Path
 r,t=map(Path,sys.argv[1:]); files=[p for p in r.iterdir() if p.is_file() and p.suffix in ('.json','.js','.html','.css')]+[r/'icons/logo.svg']
-(t/'head.json').write_text(json.dumps({'sha':'a'*40})); m=json.loads((r/'manifest.json').read_text());m['version']='1.2.2';(t/'remote.json').write_text(json.dumps(m));
+(t/'head.json').write_text(json.dumps({'sha':'a'*40})); m=json.loads((r/'manifest.json').read_text());m['version']='1.2.1';(t/'baseline.json').write_text(json.dumps(m));m['version']='1.2.2';(t/'remote.json').write_text(json.dumps(m));
 for name in ['repo.zip','wrong.zip','missing.zip']:
  with zipfile.ZipFile(t/name,'w') as z:
   for p in files:
@@ -19,7 +19,7 @@ for name in ['repo.zip','wrong.zip','missing.zip']:
 PY
 export ROOT TMP
 for mode in success same wrong missing invalid held network; do
-  export CASE="$mode" HOME="$TMP/$mode"; mkdir -p "$HOME/Library/Application Support/N360 Support/extension"; cp "$ROOT/manifest.json" "$HOME/Library/Application Support/N360 Support/extension/manifest.json"
+  export CASE="$mode" HOME="$TMP/$mode"; mkdir -p "$HOME/Library/Application Support/N360 Support/extension"; cp "$TMP/baseline.json" "$HOME/Library/Application Support/N360 Support/extension/manifest.json"
   if [ "$mode" = same ]; then cp "$TMP/remote.json" "$HOME/Library/Application Support/N360 Support/extension/manifest.json"; fi
   if [ "$mode" = held ]; then echo 1.2.2 > "$HOME/Library/Application Support/N360 Support/hold-version"; fi
   set +e

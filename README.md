@@ -1,6 +1,6 @@
 # extension-Nail360
 
-# N360 QA Automation Studio v1.2.1
+# N360 QA Automation Studio v1.2.2
 
 Extension Chrome Manifest V3 độc lập dành cho hỗ trợ kỹ thuật / QA của salon NAIL360PRO. Không phải sản phẩm chính thức của Nail360PRO.
 
@@ -81,3 +81,7 @@ Bản source GitHub sử dụng logo SVG trong side panel và icon mặc định
 - Chrome checks the on-disk update marker about once a minute (subject to Chrome alarm scheduling) even without the side panel. It automatically reloads a newer build only when all extension pages are closed, no A/B or captured page info is in session, and no visible embedded QA Studio is found in DEV tabs. If any context cannot be checked, it defers. Close QA/ admin, export and clear A/B if necessary, or choose the existing manual Reload button when ready. A rollback still requires manual reload. No website tab or browser restart is forced. An old injected overlay may need a normal page refresh before use.
 - Persistent QA reports and suites stay in `chrome.storage.local`; session data is not silently persisted to disk. A failed reload attempt is rate-limited. This uses a trusted public repository for personal unpacked development, not Chrome Web Store distribution or enterprise policy. Keep main protected, review each commit and secure the GitHub account. No new host access. Mac launchd, real Chrome alarm/reload behavior and access to the public GitHub endpoints still require verification on the Mac.
 - `node --test tests/*.cjs` (38 logic/mock tests); `bash tests/updater-commit-test.sh` (7 offline fixture cases). These are not real Chrome/macOS integration tests.
+
+## v1.2.2 — Auto-update smoke release
+
+Bản phát hành kiểm tra luồng nâng cấp từ v1.2.1. Chỉ tăng phiên bản hiển thị và manifest; không thay đổi quyền, tính năng QA, bộ updater hay dữ liệu. Bộ test updater dùng baseline 1.2.1 cố định để có thể chạy lại ở các release tiếp theo.

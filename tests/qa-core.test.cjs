@@ -1,0 +1,10 @@
+const test=require('node:test');const assert=require('node:assert/strict');const Q=require('../qa-core.js');
+const valid={id:'test-1',name:'Appt',route:'/light/admin/',steps:[{type:'count',selector:'#appointments',label:'Rendered rows',expected:11}]};
+test('only exact https DEV origin',()=>{assert(Q.isDev('https://dev.nail360.info/light/admin/'));for(const u of ['http://dev.nail360.info','https://dev.nail360.info.evil.com','https://nail360pro.com','chrome-extension://x'])assert(!Q.isDev(u));});
+test('validate suite and strip irrelevant fields',()=>{const s=Q.suite({...valid,secret:'x'});assert.equal(s.steps[0].expected,11);assert(!('secret'in s));});
+test('reject unsupported or missing steps',()=>{for(const x of [{type:'submit',selector:'#x'},{type:'text',selector:'#x',expected:''},{type:'count',selector:'#x',expected:-1},{type:'clickTab',selector:'#x'}])assert.throws(()=>Q.step(x));assert.throws(()=>Q.suite({...valid,steps:[]}));});
+test('reject query and other origins in route',()=>{for(const r of ['https://x','//x','/a?secret=x','/a#x','/a\\b'])assert.throws(()=>Q.route(r));});
+test('summary counts statuses independently',()=>assert.deepEqual(Q.summarize([{status:'PASS'},{status:'FAIL'},{status:'SKIP'},{status:'FAIL'}]),{pass:1,fail:2,skip:1,total:4}));
+test('run creates triage only for failed steps',()=>{const r=Q.run({id:'run-1',route:'/appt',name:'QA',results:[{name:'A',status:'PASS'},{name:'B',status:'FAIL',actual:'Mismatch',issue:'Resolved'}]});assert.equal(r.results[0].issue,null);assert.equal(r.results[1].issue,'Open');assert.equal(r.summary.fail,1);assert.match(Q.report(r,r.results[1]),/Mismatch/);});
+test('upsert bounded and de-duplicates',()=>assert.deepEqual(Q.upsert([{id:'a'},{id:'b'}],{id:'b',v:2},1),[{id:'b',v:2}]));
+test('CSV formula injection guarded',()=>{assert.match(Q.csv([['=1+2','abc,def','a"b']]),/"'=1\+2","abc,def","a""b"/);});

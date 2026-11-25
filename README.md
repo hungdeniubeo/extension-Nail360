@@ -1,6 +1,6 @@
 # extension-Nail360
 
-# N360 Support Toolkit v1.0.2
+# N360 QA Automation Studio v1.1.0
 
 Extension Chrome Manifest V3 độc lập dành cho hỗ trợ kỹ thuật / QA của salon NAIL360PRO. Không phải sản phẩm chính thức của Nail360PRO.
 
@@ -13,6 +13,15 @@ Extension Chrome Manifest V3 độc lập dành cho hỗ trợ kỹ thuật / QA
 3. Bật **Developer mode** (Chế độ dành cho nhà phát triển).
 4. Bấm **Load unpacked** (Tải tiện ích đã giải nén) và chọn thư mục đã giải nén có file `manifest.json` bên trong.
 5. Ghim icon N360 Support trong menu Extensions. Mở trang salon mà bạn được phép kiểm tra và bấm icon để mở side panel. Bản v1.0.1 có quyền host riêng cho `https://dev.nail360.info/*`; Chrome vẫn có thể giới hạn quyền trong Site access. Với domain khác, bấm icon ở tab đó để cấp quyền `activeTab`.
+
+## Automation Studio (v1.1.0)
+
+- Mở https://dev.nail360.info trong Chrome đã đăng nhập, bấm icon extension. Tab Automation là mặc định. **Mở Embedded QA Studio** để mở runner ngay trong trang, hoặc **Run smoke test** để chạy kiểm tra tự động. Chỉ chạy trên DEV, không đọc token/cookie, không gọi API nội bộ.
+- Smoke test: document ready, trạng thái online của trình duyệt, nội dung hiển thị, dấu hiệu lỗi nghiêm trọng ở heading/alert (heuristic), bảng DOM đã render. Bảng trống/thiếu được SKIP; đây không phải kiểm thử nghiệp vụ hoặc xác nhận HTTP status.
+- Record & Replay: đặt tên suite, Bắt đầu ghi, click tab ARIA thật để ghi các tab an toàn trên cùng pathname, hoặc chọn Thấy phần tử / Có text / Đếm dòng rồi bấm phần tử trên trang. Text là giá trị bạn nhập (không chứa dữ liệu khách), count để trống lấy baseline hiện tại hoặc nhập số mong đợi. Lưu suite và Run suite. Mỗi bước có assertion, dừng sau FAIL, các bước còn lại SKIP. Có thể dừng thủ công. Selector thay đổi cần ghi lại. Chỉ hỗ trợ DOM chính, không hỗ trợ iframe/shadow DOM, full navigation hoặc đi qua các route khác. Không ghi nhập liệu, tạo/hủy appointment, thanh toán hoặc submit. Chỉ dùng salon test được phép kiểm thử.
+- Mở **QA Admin** từ side panel: lịch sử, PASS/FAIL/SKIP, lọc kết quả, triage trạng thái Open/Investigating/Resolved/Ignored, copy bug report, xuất CSV/JSON, xóa lịch sử hoặc suite. Đây là trang extension cục bộ, không phải admin cloud. Dữ liệu tối đa 100 lượt chạy, 40 suite, 40 bước/suite trong Chrome storage.local; tên suite, selector, pathname và text mong đợi có thể chứa thông tin nội bộ, tránh PII và kiểm tra trước khi chia sẻ. Không thu thập ảnh màn hình, dữ liệu giao dịch hay text thực tế của phần tử vào report.
+- Chưa xác nhận trên salon thật sau đăng nhập. Cần cấu hình assertion theo workflow và nghiệp vụ NAIL360PRO; test mặc định không tự xác định nguyên nhân bug. Không có lịch chạy khi tab đóng, không có đồng bộ team/cloud.
+- Auto Updater v1.0.2 giữ nguyên quyền và entrypoint; tự tải v1.1.0 nếu đã cài. Sau khi đồng bộ, lưu dữ liệu đang làm rồi tải lại extension trong side panel.
 
 ## Đối chiếu Appointment / Service
 
@@ -34,7 +43,8 @@ Extension Chrome Manifest V3 độc lập dành cho hỗ trợ kỹ thuật / QA
 
 ## Kiểm thử
 
-- `node --test tests/core.test.cjs`: 9 bài kiểm thử logic.
+- `node --test tests/core.test.cjs tests/qa-core.test.cjs`: 17 bài kiểm thử logic.
+- `python tests/qa_browser_test.py`: kiểm thử runner, record/replay, assertion, admin, triage và xuất CSV trên trang giả lập trong Chromium (mock Chrome bridge, thay origin/path chỉ trong fixture).
 - `python tests/browser_test.py`: kiểm thử giao diện DOM trong Chromium (giả lập session storage) và đọc bảng HTML/ARIA, lựa chọn vùng, xuất CSV, tạo báo cáo lỗi. Cần Python Playwright và Chromium. Không kiểm thử Chrome extension API thực tế do môi trường trình duyệt kiểm thử chặn extension.
 
 Bản source GitHub sử dụng logo SVG trong side panel và icon mặc định của Chrome trên toolbar (do giới hạn truyền file nhị phân).

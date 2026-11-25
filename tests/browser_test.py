@@ -14,7 +14,7 @@ with sync_playwright() as p:
     panel.evaluate("""window.chrome = window.chrome || {}; window._mockStore = {}; window.chrome.storage = {session: {get: async (k)=>({[k]:window._mockStore[k]}), set: async (v)=>Object.assign(window._mockStore,structuredClone(v))}};""")
     panel.add_script_tag(content=(ROOT/'core.js').read_text())
     panel.add_script_tag(content=(ROOT/'panel.js').read_text())
-    panel.locator('#slot-A button').first.wait_for();panel.get_by_text('Thử dữ liệu mẫu 11 vs 9',exact=True).click()
+    panel.locator('#tab-compare').click();panel.locator('#slot-A button').first.wait_for();panel.get_by_text('Thử dữ liệu mẫu 11 vs 9',exact=True).click()
     panel.locator('#result-state').wait_for();assert panel.locator('#result-state').inner_text()=='2 mục lệch'
     assert panel.locator('#stats strong').all_inner_texts()==['11','9','+2']
     assert panel.locator('#result-table tbody tr').count()==2

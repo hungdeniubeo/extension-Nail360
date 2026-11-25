@@ -9,20 +9,29 @@
   <script src="core.js" defer></script>
   <script src="panel.js" defer></script>
   <script src="updates.js" defer></script>
+  <script src="studio.js" defer></script>
 </head>
 <body>
   <header class="header">
-    <div class="brand-row"><img src="icons/logo.svg" alt="" width="38" height="38"><div><h1>N360 Support</h1><div class="subhead">NAIL360PRO · QA TOOLKIT</div></div><span class="version">v1.0.2</span></div>
+    <div class="brand-row"><img src="icons/logo.svg" alt="" width="38" height="38"><div><h1>N360 Support</h1><div class="subhead">NAIL360PRO · QA STUDIO</div></div><span class="version">v1.1.0</span></div>
     <div class="privacy"><span class="dot"></span> Chỉ đọc dữ liệu trên trình duyệt</div>
-    <div class="update-strip"><span id="update-state" aria-live="polite">Phiên bản v1.0.2</span><button id="reload-extension" type="button" hidden>Tải lại extension</button></div>
+    <div class="update-strip"><span id="update-state" aria-live="polite">Phiên bản v1.1.0</span><button id="reload-extension" type="button" hidden>Tải lại extension</button></div>
   </header>
   <main>
     <nav class="tabs" aria-label="Chức năng">
-      <button id="tab-compare" class="tab active" data-tab="compare" aria-selected="true">Đối chiếu</button>
+      <button id="tab-automation" class="tab active" aria-selected="true">Automation</button>
+      <button id="tab-compare" class="tab" data-tab="compare" aria-selected="false">Đối chiếu</button>
       <button id="tab-qa" class="tab" data-tab="qa" aria-selected="false">QA / Bug report</button>
     </nav>
     <div id="status" role="status" aria-live="polite" hidden></div>
-    <section id="compare-view">
+    <section id="automation-view">
+      <div class="intro"><h2>QA Automation Studio</h2><p>Mở NAIL360PRO DEV và chạy test trực tiếp ngay trên trang salon.</p></div>
+      <div class="section studio-hero"><div class="studio-tag">DEV ONLY · LOCAL QA</div><h2>Kiểm thử trang hiện tại</h2><p class="muted small">Smoke test, kịch bản regression, ghi bước và assertion. Kết quả thật lưu trong Chrome.</p><button id="qa-embed" class="primary wide">Mở Embedded QA Studio</button><button id="qa-smoke" class="wide">Run smoke test</button><div id="studio-state" class="muted small" aria-live="polite">Mở trang dev.nail360.info trước.</div></div>
+      <div class="section"><h2>QA Admin</h2><p class="muted small">Lịch sử kiểm thử, PASS / FAIL / SKIP, triage lỗi và xuất báo cáo.</p><button id="qa-admin" class="primary wide">Mở trang Admin</button></div>
+      <div class="section"><h3>Record &amp; Replay</h3><p class="muted small">Mở Embedded QA → Bắt đầu ghi → click tab ARIA hoặc ghi assertion → Lưu suite → Run suite. Không ghi thao tác nhập liệu, tạo/hủy lịch, thanh toán. Chỉ dùng salon DEV được phép kiểm thử.</p></div>
+      <p class="footnote">Chưa có test case nghiệp vụ riêng cho NAIL360PRO. Các kiểm tra mặc định là DOM smoke test; assertion do bạn thiết lập. Admin chỉ lưu trên profile Chrome này.</p>
+    </section>
+    <section id="compare-view" hidden>
       <div class="intro"><h2>So sánh dữ liệu A / B</h2><p>Chọn cùng salon, ngày, trạng thái và phạm vi ở hai trang. Sau đó chụp từng bảng để tìm service hoặc appointment bị lệch.</p></div>
       <div id="slot-A" class="snapshot" data-slot="A"></div>
       <div id="slot-B" class="snapshot" data-slot="B"></div>

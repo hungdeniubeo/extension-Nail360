@@ -13,7 +13,7 @@ with sync_playwright() as p:
     page.evaluate("()=>{"+MOCK+"}");page.add_script_tag(content=(ROOT/'qa-core.js').read_text());page.evaluate("window.N360QA.ORIGIN=location.origin; if(!crypto.randomUUID) crypto.randomUUID=()=>Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,'0')).join('')");page.add_script_tag(content=(ROOT/'qa-page.js').read_text().replace('location.pathname',"'/fixture'"));page.evaluate('window.__n360QAStudio.show()')
     overlay=page.locator('[data-n360-qa-studio]');overlay.get_by_role('button',name='Run smoke test').click();page.wait_for_function('window._qaStore.runs.length===1')
     assert page.evaluate('window._qaStore.runs[0].summary')=={'pass':5,'fail':0,'skip':0,'total':5}
-    overlay.locator('#name').fill('Appointment regression fixture');overlay.locator('#record').click();page.locator('#tab-week').click();assert page.locator('#indicator').inner_text()=='Week view'
+    overlay.get_by_text('Kịch bản nâng cao / Record & Replay',exact=True).click();overlay.locator('#name').fill('Appointment regression fixture');overlay.locator('#record').click();page.locator('#tab-week').click();assert page.locator('#indicator').inner_text()=='Week view'
     # Real user clicks a disallowed tab in the fixture; the recorder must not save it.
     page.locator('#tab-delete').click();assert page.evaluate('window.unsafe')==1
     assert '1/40' in overlay.locator('#record-state').inner_text()

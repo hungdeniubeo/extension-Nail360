@@ -1,6 +1,6 @@
 # extension-Nail360
 
-# N360 QA Automation Studio v1.1.0
+# N360 QA Automation Studio v1.2.0
 
 Extension Chrome Manifest V3 độc lập dành cho hỗ trợ kỹ thuật / QA của salon NAIL360PRO. Không phải sản phẩm chính thức của Nail360PRO.
 
@@ -14,14 +14,27 @@ Extension Chrome Manifest V3 độc lập dành cho hỗ trợ kỹ thuật / QA
 4. Bấm **Load unpacked** (Tải tiện ích đã giải nén) và chọn thư mục đã giải nén có file `manifest.json` bên trong.
 5. Ghim icon N360 Support trong menu Extensions. Mở trang salon mà bạn được phép kiểm tra và bấm icon để mở side panel. Bản v1.0.1 có quyền host riêng cho `https://dev.nail360.info/*`; Chrome vẫn có thể giới hạn quyền trong Site access. Với domain khác, bấm icon ở tab đó để cấp quyền `activeTab`.
 
-## Automation Studio (v1.1.0)
+## Auto Bug Detection (v1.2.0)
 
-- Mở https://dev.nail360.info trong Chrome đã đăng nhập, bấm icon extension. Tab Automation là mặc định. **Mở Embedded QA Studio** để mở runner ngay trong trang, hoặc **Run smoke test** để chạy kiểm tra tự động. Chỉ chạy trên DEV, không đọc token/cookie, không gọi API nội bộ.
-- Smoke test: document ready, trạng thái online của trình duyệt, nội dung hiển thị, dấu hiệu lỗi nghiêm trọng ở heading/alert (heuristic), bảng DOM đã render. Bảng trống/thiếu được SKIP; đây không phải kiểm thử nghiệp vụ hoặc xác nhận HTTP status.
-- Record & Replay: đặt tên suite, Bắt đầu ghi, click tab ARIA thật để ghi các tab an toàn trên cùng pathname, hoặc chọn Thấy phần tử / Có text / Đếm dòng rồi bấm phần tử trên trang. Text là giá trị bạn nhập (không chứa dữ liệu khách), count để trống lấy baseline hiện tại hoặc nhập số mong đợi. Lưu suite và Run suite. Mỗi bước có assertion, dừng sau FAIL, các bước còn lại SKIP. Có thể dừng thủ công. Selector thay đổi cần ghi lại. Chỉ hỗ trợ DOM chính, không hỗ trợ iframe/shadow DOM, full navigation hoặc đi qua các route khác. Không ghi nhập liệu, tạo/hủy appointment, thanh toán hoặc submit. Chỉ dùng salon test được phép kiểm thử.
-- Mở **QA Admin** từ side panel: lịch sử, PASS/FAIL/SKIP, lọc kết quả, triage trạng thái Open/Investigating/Resolved/Ignored, copy bug report, xuất CSV/JSON, xóa lịch sử hoặc suite. Đây là trang extension cục bộ, không phải admin cloud. Dữ liệu tối đa 100 lượt chạy, 40 suite, 40 bước/suite trong Chrome storage.local; tên suite, selector, pathname và text mong đợi có thể chứa thông tin nội bộ, tránh PII và kiểm tra trước khi chia sẻ. Không thu thập ảnh màn hình, dữ liệu giao dịch hay text thực tế của phần tử vào report.
-- Chưa xác nhận trên salon thật sau đăng nhập. Cần cấu hình assertion theo workflow và nghiệp vụ NAIL360PRO; test mặc định không tự xác định nguyên nhân bug. Không có lịch chạy khi tab đóng, không có đồng bộ team/cloud.
-- Auto Updater v1.0.2 giữ nguyên quyền và entrypoint; tự tải v1.1.0 nếu đã cài. Sau khi đồng bộ, lưu dữ liệu đang làm rồi tải lại extension trong side panel.
+1. Mở salon DEV đã đăng nhập, chọn module cần kiểm. Bấm icon extension → Automation → **Scan for Bugs**. Kết quả tự động hiển thị trong trang (Embedded QA Studio) và lưu vào QA Admin. Có thể mở Studio trước rồi quét.
+2. Bất thường (FAIL) hiển thị trước, có mã kiểm tra, module, vị trí, mức độ đề xuất, mong đợi, thực tế, chênh lệch, ảnh hưởng, bước tái hiện và việc cần làm. Chênh lệch đã đo khác với dấu hiệu cần xác minh hoặc lỗi môi trường. PASS chỉ áp dụng cho điều kiện đã kiểm; SKIP là chưa đủ căn cứ/không áp dụng, không phải kết quả đạt. Không có lỗi được xác nhận nếu chưa kiểm tra nghiệp vụ.
+3. Mở **QA Admin** từ Studio hoặc side panel. Lọc bất thường theo nghiệp vụ/số liệu, kỹ thuật/UI/API, môi trường; xem từng lượt, cập nhật Open/Investigating/Resolved/Ignored, copy báo cáo tiếng Việt, xuất CSV/JSON. Dữ liệu chỉ lưu trong profile Chrome, tối đa 100 lượt chạy và 40 suite. Tránh thông tin khách hàng trong tên suite, URL/selector và report; kiểm tra trước khi chia sẻ.
+
+### Quy tắc có sẵn
+
+- Appointment: đối chiếu số dòng với phạm vi phân trang được công bố, khi bảng có một dòng/Appointment ID riêng biệt, không có cấu trúc gộp/virtualized. Không tự so sánh hai trang nếu chưa xác nhận cùng phạm vi.
+- Service: tìm ID danh mục/Service Line ID lặp và tên dịch vụ trống ở bảng nhận diện được; tên service trùng không tự coi là bug. Không lưu ID/khách hàng vào báo cáo quét tự động.
+- Ticket/POS: Quantity × Unit price so với Line subtotal trước giảm giá; Discount và Tax so với số tiền cơ sở × tỷ lệ hiển thị; đối chiếu Grand total với đủ 6 trường subtotal, discount, tax, tip, fees, grand total. Chỉ hỗ trợ số tiền định dạng USD rõ ràng, sai số tối đa 1 cent. Không mặc định khoản thiếu là 0. Công thức hiển thị là kiểm tra tính nhất quán, chưa xác nhận quy tắc tax-inclusive, voucher, hoàn tiền, phụ phí hoặc rounding của salon.
+- Reports: so tổng từng cột Sales, Revenue, Tip, Tax, Ticket total với dòng Total khi bảng có phạm vi phân trang đầy đủ và không bị cắt. Không coi Sales và Revenue là cùng chỉ số. Đối chiếu tổng tiền A/B cho hai nguồn cùng chỉ số và cùng phạm vi.
+- Turn/Technician: phát hiện vị trí hàng đợi không phải số nguyên dương ở cột Queue/Turn position; cần xác nhận quy ước 0/1. Chưa có quy tắc nghiệp vụ tăng Turn, weight, reset, technician nghỉ và ngoại lệ.
+- UI: trạng thái tải, nội dung nhìn thấy, dấu hiệu thông báo lỗi nghiêm trọng. Network: trạng thái online của trình duyệt và HTTP 4xx/5xx của các XHR/fetch cùng origin có responseStatus đọc được trong Performance Resource Timing. Không giám sát toàn bộ Network, không đọc console/request body/token/cookie, không suy đoán nguyên nhân gốc. Không phát request để quét.
+- Module được suy ra từ pathname/heading rõ ràng, dữ liệu từ HTML/ARIA table, nhãn–giá trị chuẩn (dl/bảng 2 cột), giới hạn 15 bảng/500 dòng mỗi bảng. Calendar/card, iframe, shadow DOM, selector tùy biến, dữ liệu ẩn hoặc quy tắc chưa xác minh có thể không đọc được. Không có test UI tự động cho mọi nút; Record & Replay vẫn hỗ trợ các tab ARIA đã xác nhận và assertion.
+
+### Kiểm thử nâng cao và phạm vi
+
+Mở mục **Kịch bản nâng cao / Record & Replay** trong Studio → Bắt đầu ghi → click tab ARIA an toàn trên cùng pathname hoặc chọn assertion Thấy phần tử / Có text / Đếm dòng → Lưu suite → Run suite. Không chạy thanh toán, nhập mật khẩu, tạo/hủy booking, submit. Dừng sau bước FAIL hoặc chuyển route. Không lưu text thực tế chứa PII; text mong đợi do QA nhập. Scan for Bugs là read-only; replay có thể click tab khi QA xác nhận và chỉ dùng salon test.
+
+Bản v1.2.0 chưa kiểm thử trực tiếp trên salon thật sau đăng nhập. Các quy tắc dựa trên label/cột tiêu chuẩn, không phải adapter đã được xác thực cho mọi giao diện NAIL360PRO. Admin hiện là trang extension cục bộ, không có lịch chạy nền khi tab đóng, không có server/cloud/team sync. Quyền và entrypoint không đổi, tương thích Auto Updater đã cài.
 
 ## Đối chiếu Appointment / Service
 
@@ -31,7 +44,7 @@ Extension Chrome Manifest V3 độc lập dành cho hỗ trợ kỹ thuật / QA
 - Chọn cột **Service** ở cả hai bên để đối chiếu theo tên dịch vụ; hoặc chọn ID ở cả hai bên để đếm dòng theo appointment. Dùng cột ghép ID + Service khi cần đối chiếu từng booking và cả hai nguồn có cùng loại ID.
 - Mở Xem trước để xác minh cột và số dòng; chọn quy tắc tách ô chỉ khi dữ liệu thực sự chứa nhiều service.
 - Cột A-B dương: A nhiều hơn B; âm: B nhiều hơn A. Tổng bằng nhau không bảo đảm từng mục đều khớp.
-- Xuất CSV hoặc sao chép kết quả. Tạo bug report từ kết quả, chỉnh sửa bước tái hiện và thông tin môi trường rồi sao chép. Việc gửi báo cáo do người dùng quyết định.
+- **Lưu đối chiếu vào Admin**: chỉ cho hai bảng DEV trực tiếp, cùng loại cột, không bị cắt; xác nhận cùng salon, ngày, timezone, status, phạm vi và đơn vị. Tùy chọn lưu tên service lệch (chỉ nếu không có PII), tối đa 12 chi tiết/lượt; CSV vẫn có đầy đủ. **Đối chiếu tổng tiền**: chọn cùng cột tiền USD ở A/B, bỏ cột ghép, xác nhận cùng phạm vi; không bỏ qua ô trống. Kết quả có chênh lệch số tiền và hướng kiểm tra, lưu Admin. Xuất CSV hoặc copy báo cáo để gửi Dev sau khi xác minh.
 - Dùng **Thử dữ liệu mẫu 11 vs 9** để kiểm tra giao diện. Mẫu giả lập: Gel Polish 3 vs 2, Pedicure 4 vs 3.
 
 ## Phạm vi, quyền và bảo mật
@@ -43,7 +56,8 @@ Extension Chrome Manifest V3 độc lập dành cho hỗ trợ kỹ thuật / QA
 
 ## Kiểm thử
 
-- `node --test tests/core.test.cjs tests/qa-core.test.cjs`: 17 bài kiểm thử logic.
+- `node --test tests/core.test.cjs tests/qa-core.test.cjs tests/audit-core.test.cjs`: 31 bài kiểm thử logic.
+- `python tests/audit_browser_test.py`: quét trang giả lập, lỗi Appointment 11/9, Ticket, Discount, Tax, báo cáo Admin, lọc loại lỗi, xuất CSV, lưu A/B service và tiền; mock Chrome bridge.
 - `python tests/qa_browser_test.py`: kiểm thử runner, record/replay, assertion, admin, triage và xuất CSV trên trang giả lập trong Chromium (mock Chrome bridge, thay origin/path chỉ trong fixture).
 - `python tests/browser_test.py`: kiểm thử giao diện DOM trong Chromium (giả lập session storage) và đọc bảng HTML/ARIA, lựa chọn vùng, xuất CSV, tạo báo cáo lỗi. Cần Python Playwright và Chromium. Không kiểm thử Chrome extension API thực tế do môi trường trình duyệt kiểm thử chặn extension.
 

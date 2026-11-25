@@ -7,15 +7,17 @@
   <title>Nail360PRO Support Toolkit</title>
   <link rel="stylesheet" href="panel.css">
   <script src="core.js" defer></script>
+  <script src="qa-core.js" defer></script>
+  <script src="audit-core.js" defer></script>
   <script src="panel.js" defer></script>
   <script src="updates.js" defer></script>
   <script src="studio.js" defer></script>
 </head>
 <body>
   <header class="header">
-    <div class="brand-row"><img src="icons/logo.svg" alt="" width="38" height="38"><div><h1>N360 Support</h1><div class="subhead">NAIL360PRO · QA STUDIO</div></div><span class="version">v1.1.0</span></div>
+    <div class="brand-row"><img src="icons/logo.svg" alt="" width="38" height="38"><div><h1>N360 Support</h1><div class="subhead">NAIL360PRO · QA STUDIO</div></div><span class="version">v1.2.0</span></div>
     <div class="privacy"><span class="dot"></span> Chỉ đọc dữ liệu trên trình duyệt</div>
-    <div class="update-strip"><span id="update-state" aria-live="polite">Phiên bản v1.1.0</span><button id="reload-extension" type="button" hidden>Tải lại extension</button></div>
+    <div class="update-strip"><span id="update-state" aria-live="polite">Phiên bản v1.2.0</span><button id="reload-extension" type="button" hidden>Tải lại extension</button></div>
   </header>
   <main>
     <nav class="tabs" aria-label="Chức năng">
@@ -25,11 +27,11 @@
     </nav>
     <div id="status" role="status" aria-live="polite" hidden></div>
     <section id="automation-view">
-      <div class="intro"><h2>QA Automation Studio</h2><p>Mở NAIL360PRO DEV và chạy test trực tiếp ngay trên trang salon.</p></div>
-      <div class="section studio-hero"><div class="studio-tag">DEV ONLY · LOCAL QA</div><h2>Kiểm thử trang hiện tại</h2><p class="muted small">Smoke test, kịch bản regression, ghi bước và assertion. Kết quả thật lưu trong Chrome.</p><button id="qa-embed" class="primary wide">Mở Embedded QA Studio</button><button id="qa-smoke" class="wide">Run smoke test</button><div id="studio-state" class="muted small" aria-live="polite">Mở trang dev.nail360.info trước.</div></div>
+      <div class="intro"><h2>Auto Bug Detection</h2><p>Mở trang DEV cần kiểm tra. Quét tự động và xem bằng chứng ngay trên website.</p></div>
+      <div class="section studio-hero"><div class="studio-tag">DEV ONLY · LOCAL QA</div><h2>Kiểm thử trang hiện tại</h2><p class="muted small">Kiểm tra UI, HTTP status quan sát được và quy tắc số liệu khi có đủ căn cứ. Không tự ghi dữ liệu salon.</p><button id="qa-embed" class="wide">Mở Embedded QA Studio</button><button id="qa-smoke" class="primary wide">Scan for Bugs</button><div id="studio-state" class="muted small" aria-live="polite">Mở trang dev.nail360.info trước.</div></div>
       <div class="section"><h2>QA Admin</h2><p class="muted small">Lịch sử kiểm thử, PASS / FAIL / SKIP, triage lỗi và xuất báo cáo.</p><button id="qa-admin" class="primary wide">Mở trang Admin</button></div>
       <div class="section"><h3>Record &amp; Replay</h3><p class="muted small">Mở Embedded QA → Bắt đầu ghi → click tab ARIA hoặc ghi assertion → Lưu suite → Run suite. Không ghi thao tác nhập liệu, tạo/hủy lịch, thanh toán. Chỉ dùng salon DEV được phép kiểm thử.</p></div>
-      <p class="footnote">Chưa có test case nghiệp vụ riêng cho NAIL360PRO. Các kiểm tra mặc định là DOM smoke test; assertion do bạn thiết lập. Admin chỉ lưu trên profile Chrome này.</p>
+      <p class="footnote">PASS chỉ áp dụng cho kiểm tra đã chạy. Chưa kiểm = thiếu dữ liệu/quy tắc. Các adapter dựa trên tên cột/label chuẩn, chưa xác minh DOM salon thật. Admin lưu cục bộ.</p>
     </section>
     <section id="compare-view" hidden>
       <div class="intro"><h2>So sánh dữ liệu A / B</h2><p>Chọn cùng salon, ngày, trạng thái và phạm vi ở hai trang. Sau đó chụp từng bảng để tìm service hoặc appointment bị lệch.</p></div>
@@ -49,6 +51,8 @@
         <div id="result-table" class="table-scroll"></div>
         <div id="result-summary" class="muted small"></div>
         <div class="actions"><button id="copy-result" class="primary">Sao chép kết quả</button><button id="export-result">Xuất CSV</button></div>
+        <div class="actions"><button id="audit-ab" class="primary">Lưu đối chiếu vào Admin</button><button id="audit-money">Đối chiếu tổng tiền</button></div>
+        <p class="muted small">Tổng tiền: chọn cùng cột chỉ số USD ở A/B, ví dụ Revenue. Chỉ lưu khi cùng salon, ngày, bộ lọc và phạm vi đầy đủ.</p>
         <button id="create-bug" class="wide ghost">Tạo bug report từ kết quả →</button>
       </section>
       <div class="bottom-row"><button id="load-demo" class="link-button">Thử dữ liệu mẫu 11 vs 9</button><button id="reset" class="link-button danger">Xóa dữ liệu</button></div>

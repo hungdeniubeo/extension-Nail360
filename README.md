@@ -1,9 +1,15 @@
 # extension-Nail360
 
-# N360 Support v2.0.0
+# N360 Support v2.1.0
 
 Extension Chrome Manifest V3 độc lập dành cho hỗ trợ kỹ thuật / QA của salon NAIL360PRO. Không phải sản phẩm chính thức của Nail360PRO.
 
+
+## v2.1.0 — Kiểm thử theo module
+
+Màn hình Kiểm thử tách HOME, APPOINTMENT, REPORTS, MARKETING, SETTINGS; Các mục khác gồm Ticket/POS, Service, Turn/Technician, Customer và Khác. Chọn một module rồi bấm Quét lỗi trang này. App dùng tab DEV hiện tại nếu đúng module; nếu khác, chỉ mở đường dẫn menu DEV cùng origin được nhận diện duy nhất hoặc đường dẫn Home/Appointment đã xác nhận. Nếu chưa xác định được, mở đúng trang thủ công. Không suy đoán URL hoặc chạy nhầm module. Lịch sử và báo lỗi có bộ lọc theo module của đường dẫn lượt chạy; dữ liệu cũ vẫn giữ. Xuất CSV/JSON vẫn xuất toàn bộ lịch sử.
+
+Mỗi module phân biệt kiểm tra hiện có với kịch bản tự thao tác chưa triển khai. Home, Marketing, Settings và Customer chỉ có kiểm tra kỹ thuật; không tự xác nhận nghiệp vụ. Bộ quét còn lại vẫn dùng quy tắc có căn cứ của v2.0.0. Chưa phải E2E tự tạo lịch, Ticket, gửi marketing, đổi settings hoặc thanh toán. Không đổi quyền hay updater; tăng version để cơ chế tự cập nhật nhận bản mới.
 
 ## v2.0.0 — Trợ lý Support đơn giản hơn
 

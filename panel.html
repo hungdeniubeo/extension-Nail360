@@ -12,26 +12,29 @@
   <script src="panel.js" defer></script>
   <script src="updates.js" defer></script>
   <script src="support-view.js" defer></script>
+  <script src="module-catalog.js" defer></script>
   <script src="studio.js" defer></script>
 </head>
 <body>
   <header class="header">
-    <div class="brand-row"><img src="icons/logo.svg" alt="" width="38" height="38"><div><h1>N360 Support</h1><div class="subhead">TRỢ LÝ SUPPORT · DEV</div></div><span class="version">v2.0.0</span></div>
+    <div class="brand-row"><img src="icons/logo.svg" alt="" width="38" height="38"><div><h1>N360 Support</h1><div class="subhead">TRỢ LÝ SUPPORT · DEV</div></div><span class="version">v2.1.0</span></div>
     <div class="privacy"><span class="dot"></span> Chỉ đọc dữ liệu trên trình duyệt</div>
-    <div class="update-strip"><span id="update-state" aria-live="polite">Phiên bản v2.0.0</span><button id="reload-extension" type="button" hidden>Tải lại extension</button></div>
+    <div class="update-strip"><span id="update-state" aria-live="polite">Phiên bản v2.1.0</span><button id="reload-extension" type="button" hidden>Tải lại extension</button></div>
   </header>
   <main>
     <nav class="tabs" aria-label="Chức năng">
-      <button id="tab-automation" class="tab active" aria-selected="true">Quét lỗi</button>
+      <button id="tab-automation" class="tab active" aria-selected="true">Kiểm thử</button>
       <button id="tab-compare" class="tab" data-tab="compare" aria-selected="false">So sánh</button>
       <button id="tab-qa" class="tab" data-tab="qa" aria-selected="false">Báo lỗi</button>
     </nav>
     <div id="status" role="status" aria-live="polite" hidden></div>
     <section id="automation-view">
-      <div class="scan-hero"><div class="studio-tag">KIỂM TRA TRANG ĐANG MỞ</div><h2 id="current-module">Mở trang salon DEV</h2><p id="current-route" class="muted small">Chọn màn hình cần kiểm tra.</p><button id="qa-smoke" class="primary wide scan-main">Quét lỗi trang này</button><p id="studio-state" role="status" aria-live="polite" class="muted small">Quét không thay đổi dữ liệu salon.</p></div>
+      <section id="module-picker" class="module-picker"><div class="intro"><h2>Chọn module kiểm thử</h2><p>Mỗi module có phạm vi và lịch sử riêng.</p></div><div id="module-grid" class="module-grid"></div><details class="module-other"><summary>Các mục khác</summary><div id="module-extra" class="module-grid"></div></details></section>
+      <section id="module-detail" hidden><button id="module-back" class="module-back">← Tất cả module</button><div class="module-cover"><p id="module-title" class="studio-tag"></p><h2 id="module-heading"></h2><p id="module-hint" class="muted small"></p><h3>Kiểm tra hiện có</h3><ul id="module-ready"></ul><details><summary>Kịch bản tự thao tác chưa triển khai</summary><ul id="module-planned"></ul></details></div>
+      <div class="scan-hero"><div class="studio-tag">TRANG KIỂM THỬ</div><h2 id="current-module">Mở trang salon DEV</h2><p id="current-route" class="muted small">Chọn màn hình cần kiểm tra.</p><button id="qa-smoke" class="primary wide scan-main">Quét lỗi trang này</button><p id="studio-state" role="status" aria-live="polite" class="muted small">Kiểm tra hiện có chỉ đọc dữ liệu, chưa tự tạo giao dịch.</p></div>
       <div id="scan-result" aria-live="polite"></div>
-      <div class="quick-links"><button id="go-compare">So sánh hai trang</button><button id="qa-admin">Mở lịch sử báo lỗi</button></div>
-      <details class="advanced"><summary>Tùy chọn khác</summary><button id="qa-embed" class="wide">Hiện công cụ ngay trên website</button><p class="muted small">Công cụ ghi kịch bản được giữ trong mục nâng cao trên website.</p></details>
+      <div class="quick-links"><button id="go-compare">So sánh hai trang</button><button id="module-report">Báo lỗi module này</button></div>
+      <details class="advanced"><summary>Tùy chọn khác</summary><button id="qa-admin" class="wide">Mở lịch sử báo lỗi</button><button id="qa-embed" class="wide">Hiện công cụ ngay trên website</button><p class="muted small">Công cụ ghi kịch bản được giữ trong mục nâng cao trên website.</p></details></section>
     </section>
     <section id="compare-view" hidden>
       <div class="intro"><h2>Hai trang có khớp nhau không?</h2><p>Chụp trang A, chuyển sang trang B rồi chụp. Kết quả hiện tự động. Hai nguồn cần cùng salon, ngày, bộ lọc và đơn vị đếm.</p></div>
@@ -60,7 +63,7 @@
     </section>
     <section id="qa-view" hidden>
       <div class="intro"><h2>Báo lỗi cho Dev</h2><p>Lỗi từ các lần quét và đối chiếu đã lưu.</p></div>
-      <div class="quick-links"><button id="report-history" class="primary">Mở lịch sử</button><button id="report-refresh">Làm mới</button></div><div id="report-state" role="status" class="muted small"></div><div id="recent-issues"></div>
+      <div class="quick-links"><button id="report-history" class="primary">Mở lịch sử</button><button id="report-refresh">Làm mới</button></div><label for="report-module">Lọc theo module</label><select id="report-module" aria-label="Lọc báo lỗi theo module"><option value="all">Tất cả module</option></select><div id="report-state" role="status" class="muted small"></div><div id="recent-issues"></div>
       <details id="manual-report" class="advanced"><summary>Tự viết báo lỗi</summary>
       <section class="section">
         <h3>Thông tin trang</h3>

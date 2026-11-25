@@ -1,10 +1,12 @@
 # extension-Nail360
 
-# N360 Support Toolkit v1.0.1
+# N360 Support Toolkit v1.0.2
 
 Extension Chrome Manifest V3 độc lập dành cho hỗ trợ kỹ thuật / QA của salon NAIL360PRO. Không phải sản phẩm chính thức của Nail360PRO.
 
 ## Cài đặt
+
+**Khuyên dùng trên macOS:** cài [N360 Auto Updater](macos/README.md) một lần để tự đồng bộ phiên bản mới từ GitHub và tải lại bằng một nút trong side panel. Các bước dưới đây dành cho cách cài ZIP thủ công.
 
 1. Tải ZIP từ nút Code > Download ZIP trên GitHub rồi giải nén. Dùng Chrome desktop 116 trở lên.
 2. Mở `chrome://extensions` trên thanh địa chỉ.
@@ -41,3 +43,9 @@ Bản source GitHub sử dụng logo SVG trong side panel và icon mặc định
 
 - Giải nén ZIP mới, mở `chrome://extensions` và tải lại extension nếu đã thay file trong thư mục cũ; hoặc gỡ bản cũ rồi Load unpacked từ thư mục mới. Xác nhận phiên bản 1.0.1 và quyền truy cập trang nếu Chrome hỏi.
 - Tải lại trang DEV rồi mở panel, thử Quét bảng. Nếu vẫn lỗi, kiểm tra Details > Site access (Quyền truy cập trang web) và gửi chi tiết lỗi hiển thị trong panel (che thông tin nhạy cảm nếu có).
+
+## v1.0.2 — macOS Auto Updater
+
+- Đồng bộ phiên bản từ repo public mỗi 5 phút khi phiên người dùng macOS đang hoạt động. Không cần Chrome Web Store, sudo hoặc token GitHub.
+- Có thư mục cài ổn định, kiểm tra phiên bản, sao lưu một phiên bản trước và rollback. Các bản nâng cấp thay đổi quyền/entrypoint cần kiểm tra thủ công.
+- Sau khi tải xong, lưu kết quả A/B nếu cần rồi bấm **Tải lại extension**. Chrome không tự áp dụng tất cả cập nhật unpacked ngay khi file thay đổi. Xem [hướng dẫn cài đặt và quản lý](macos/README.md).

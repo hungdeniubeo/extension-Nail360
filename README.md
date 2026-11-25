@@ -105,3 +105,7 @@ Bản source GitHub sử dụng logo SVG trong side panel và icon mặc định
 ## v1.2.2 — Auto-update smoke release
 
 Bản phát hành kiểm tra luồng nâng cấp từ v1.2.1. Chỉ tăng phiên bản hiển thị và manifest; không thay đổi quyền, tính năng QA, bộ updater hay dữ liệu. Bộ test updater dùng baseline 1.2.1 cố định để có thể chạy lại ở các release tiếp theo.
+
+## Windows 10/11
+
+Chạy `windows/INSTALL.cmd` từ repo đã giải nén hoặc dùng bộ cài offline N360 Support Windows. Cài một lần, Load unpacked từ `%LOCALAPPDATA%\N360 Support\extension`. Task Scheduler kiểm tra GitHub mỗi 5 phút bằng tài khoản hiện tại; Chrome tự reload khi không có công việc dang dở. Xem [hướng dẫn Windows](windows/README.md). Không thay đổi runtime hoặc quyền Chrome. Bộ cài chưa chạy thử trên Windows thật.

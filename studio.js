@@ -1,18 +1,31 @@
+/* Main support workflow. Read-only scan in the active DEV tab, without opening a second UI. */
 (()=>{
-'use strict';
-const $=id=>document.getElementById(id),state=$('studio-state');
-async function embed(scan){
-  $('qa-embed').disabled=$('qa-smoke').disabled=true;state.textContent='Đang mở QA Studio…';
-  try{
-    const [tab]=await chrome.tabs.query({active:true,currentWindow:true});
-    if(!tab?.id||!tab.url||new URL(tab.url).origin!=='https://dev.nail360.info')throw Error('Chỉ chạy trên https://dev.nail360.info. Hãy mở trang DEV đã đăng nhập và cấp Site access.');
-    await chrome.scripting.executeScript({target:{tabId:tab.id},files:['qa-core.js','audit-core.js','audit-dom.js','qa-page.js']});
-    const [r]=await chrome.scripting.executeScript({target:{tabId:tab.id},func:(run)=>{const api=globalThis.__n360QAStudio;if(!api)return false;api.show();if(run)api.runAudit();return true;},args:[scan]});
-    if(!r?.result)throw Error('Không khởi tạo được runner ở tab chính.');
-    state.textContent=scan?'Đã yêu cầu Scan for Bugs. Xem kết quả trên trang hoặc Admin.':'Đã mở QA Studio trong website. Bạn có thể đóng side panel.';
-  }catch(e){state.textContent='Không mở được QA Studio: '+e.message;}
-  finally{$('qa-embed').disabled=$('qa-smoke').disabled=false;}
-}
-$('qa-embed').addEventListener('click',()=>embed(false));$('qa-smoke').addEventListener('click',()=>embed(true));
-$('qa-admin').addEventListener('click',async()=>{try{await chrome.tabs.create({url:chrome.runtime.getURL('admin.html')});}catch(e){state.textContent=e.message;}});
+'use strict';const $=id=>document.getElementById(id),Q=globalThis.N360QA,A=globalThis.N360Audit,V=globalThis.N360View,state=$('studio-state');
+let busy=false,reportData=null,reportRequest=0;
+const say=(id,text)=>{$(id).textContent=text;};
+const send=async(type,args={})=>{const r=await chrome.runtime.sendMessage({type,...args});if(!r?.ok)throw Error(r?.error||'Không lưu/đọc được báo cáo.');return r.data;};
+async function active(){const [tab]=await chrome.tabs.query({active:true,currentWindow:true});if(!tab?.id||!Q.isDev(tab.url))throw Error('Mở trang https://dev.nail360.info đã đăng nhập, sau đó thử lại.');return tab;}
+function showTarget(tab){const route=new URL(tab.url).pathname;say('current-module',A.moduleFor(route,[])==='Chưa nhận diện'?'Trang DEV đang mở':A.moduleFor(route,[]));say('current-route',route);}
+async function target(){try{showTarget(await active());}catch{say('current-module','Mở trang salon DEV');say('current-route','Chọn màn hình cần kiểm tra.');}}
+async function copy(r,t){try{await navigator.clipboard.writeText(Q.report(r,t));say('report-state','Đã sao chép báo lỗi. Kiểm tra nội dung trước khi gửi Dev.');state.textContent='Đã sao chép báo lỗi.';}catch(e){say('report-state','Không sao chép được. Mở lịch sử hoặc thử lại.');state.textContent='Không sao chép được. Mở lịch sử hoặc thử lại.';}}
+async function history(){try{await chrome.tabs.create({url:chrome.runtime.getURL('admin.html')});}catch(e){state.textContent=e.message;say('report-state',e.message);}}
+function viewRun(run){V.render($('scan-result'),run,{copy,showRoute:false,compare:()=>$('tab-compare').click()});}
+async function updateIssue(r,t,status){try{reportData=await send('qa:issue',{runId:r.id,testId:t.id,status});renderReports();say('report-state','Đã cập nhật trạng thái. Không tự gửi tin cho Dev.');}catch(e){say('report-state','Không cập nhật được: '+e.message);await reports(false);}}
+function renderReports(){const root=$('recent-issues');root.replaceChildren();const items=(reportData?.runs||[]).flatMap(r=>r.results.filter(t=>t.status==='FAIL'&&V.isOpen(t)).map(t=>({r,t})));if(!items.length){const p=document.createElement('p');p.className='muted';p.textContent='Chưa có lỗi đang theo dõi. Quét hoặc lưu đối chiếu trước; xem cả lỗi đã xử lý trong Lịch sử.';root.append(p);return;}
+ for(const {r,t} of items.slice(0,8))root.append(V.issueCard(r,t,{copy,change:updateIssue}));if(items.length>8){const p=document.createElement('p');p.className='muted small';p.textContent=`Còn ${items.length-8} kết quả; xem toàn bộ trong Lịch sử.`;root.append(p);}}
+async function reports(showMessage=true){const request=++reportRequest;try{const data=await send('qa:list');if(request!==reportRequest)return;reportData=data;renderReports();if(showMessage)say('report-state','Chỉ hiện bất thường chưa đóng.');}catch(e){if(request===reportRequest)say('report-state',e.message);}}
+async function scan(){if(busy)return;busy=true;$('qa-smoke').disabled=$('qa-embed').disabled=true;$('qa-smoke').textContent='Đang quét…';state.textContent='Đang đọc màn hình hiện tại.';$('scan-result').replaceChildren();try{
+ const tab=await active();showTarget(tab);const route=new URL(tab.url).pathname;
+ await chrome.scripting.executeScript({target:{tabId:tab.id},files:['audit-core.js','audit-dom.js']});
+ const [r]=await chrome.scripting.executeScript({target:{tabId:tab.id},func:async expected=>{if(location.origin!=='https://dev.nail360.info'||location.pathname!==expected)throw Error('Trang đã thay đổi; quét lại.');await new Promise(r=>setTimeout(r,350));if(location.origin!=='https://dev.nail360.info'||location.pathname!==expected)throw Error('Trang đã thay đổi; quét lại.');const snapshot=globalThis.__n360AuditDOM.snapshot();return {route:location.pathname,module:snapshot.module,results:globalThis.N360Audit.scan(snapshot)};},args:[route]});
+ if(!r?.result?.results?.length)throw Error('Không đọc được trang. Tải lại website và thử quét.');const snapshot=r.result;
+ const [now]=await chrome.tabs.query({active:true,currentWindow:true});if(now?.id!==tab.id||!Q.isDev(now.url)||new URL(now.url).pathname!==route||now.url!==tab.url)throw Error('Tab hoặc trang đã đổi trong lúc quét. Quét lại trang cần kiểm tra.');
+ say('current-module',snapshot.module==='Chưa nhận diện'?'Trang DEV đang mở':snapshot.module);
+ const run={id:crypto.randomUUID(),route:snapshot.route,name:'Quét lỗi · '+snapshot.module,results:snapshot.results};
+ try{const data=await send('qa:saveRun',{run});const saved=data.runs.find(x=>x.id===run.id);if(!saved)throw Error('Không tìm thấy kết quả vừa lưu.');viewRun(saved);state.textContent='Đã lưu kết quả vào lịch sử.';await reports(false);}catch(e){viewRun({...run,at:new Date().toISOString()});state.textContent='Đã quét nhưng chưa lưu được lịch sử: '+e.message;}
+ }catch(e){state.textContent='Chưa quét được: '+e.message;}finally{busy=false;$('qa-smoke').disabled=$('qa-embed').disabled=false;$('qa-smoke').textContent='Quét lỗi trang này';}}
+async function embed(){if(busy)return;busy=true;$('qa-smoke').disabled=$('qa-embed').disabled=true;try{const tab=await active();await chrome.scripting.executeScript({target:{tabId:tab.id},files:['qa-core.js','audit-core.js','audit-dom.js','support-view.js','qa-page.js']});const [r]=await chrome.scripting.executeScript({target:{tabId:tab.id},func:()=>{if(!globalThis.__n360QAStudio)return false;globalThis.__n360QAStudio.show();return true;}});if(!r?.result)throw Error('Không mở được công cụ trên website.');state.textContent='Đã mở công cụ trên website. Có thể đóng Side Panel.';}catch(e){state.textContent=e.message;}finally{busy=false;$('qa-smoke').disabled=$('qa-embed').disabled=false;}}
+const style=document.createElement('style');style.textContent=V.css;document.head.append(style);
+$('qa-smoke').onclick=scan;$('qa-embed').onclick=embed;$('qa-admin').onclick=history;$('report-history').onclick=history;$('report-refresh').onclick=()=>reports();$('tab-qa').addEventListener('click',()=>reports());$('go-compare').onclick=()=>$('tab-compare').click();
+chrome.storage?.onChanged?.addListener((changes,area)=>{if(area==='local'&&changes[Q.KEY])reports(false);});chrome.tabs?.onActivated?.addListener(()=>{if(!busy){$('scan-result').replaceChildren();state.textContent='Đã chuyển tab. Bấm quét để kiểm tra trang mới.';target();}});chrome.tabs?.onUpdated?.addListener((id,change,tab)=>{if(tab.active&&!busy&&(change.url||change.status==='loading')){$('scan-result').replaceChildren();state.textContent='Trang đã thay đổi. Bấm quét lại.';target();}});target();reports(false);
 })();

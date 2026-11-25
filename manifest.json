@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Nail360PRO Support Toolkit",
   "short_name": "N360 Support",
-  "version": "1.2.2",
-  "description": "Read-only DEV bug scan, business checks, regression, comparison and local QA dashboard.",
+  "version": "2.0.0",
+  "description": "N360 Support: plain-language DEV issue scan, data comparison and bug reports.",
   "minimum_chrome_version": "116",
   "permissions": [
     "activeTab",

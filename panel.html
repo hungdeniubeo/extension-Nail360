@@ -11,38 +11,38 @@
   <script src="audit-core.js" defer></script>
   <script src="panel.js" defer></script>
   <script src="updates.js" defer></script>
+  <script src="support-view.js" defer></script>
   <script src="studio.js" defer></script>
 </head>
 <body>
   <header class="header">
-    <div class="brand-row"><img src="icons/logo.svg" alt="" width="38" height="38"><div><h1>N360 Support</h1><div class="subhead">NAIL360PRO · QA STUDIO</div></div><span class="version">v1.2.2</span></div>
+    <div class="brand-row"><img src="icons/logo.svg" alt="" width="38" height="38"><div><h1>N360 Support</h1><div class="subhead">TRỢ LÝ SUPPORT · DEV</div></div><span class="version">v2.0.0</span></div>
     <div class="privacy"><span class="dot"></span> Chỉ đọc dữ liệu trên trình duyệt</div>
-    <div class="update-strip"><span id="update-state" aria-live="polite">Phiên bản v1.2.2</span><button id="reload-extension" type="button" hidden>Tải lại extension</button></div>
+    <div class="update-strip"><span id="update-state" aria-live="polite">Phiên bản v2.0.0</span><button id="reload-extension" type="button" hidden>Tải lại extension</button></div>
   </header>
   <main>
     <nav class="tabs" aria-label="Chức năng">
-      <button id="tab-automation" class="tab active" aria-selected="true">Automation</button>
-      <button id="tab-compare" class="tab" data-tab="compare" aria-selected="false">Đối chiếu</button>
-      <button id="tab-qa" class="tab" data-tab="qa" aria-selected="false">QA / Bug report</button>
+      <button id="tab-automation" class="tab active" aria-selected="true">Quét lỗi</button>
+      <button id="tab-compare" class="tab" data-tab="compare" aria-selected="false">So sánh</button>
+      <button id="tab-qa" class="tab" data-tab="qa" aria-selected="false">Báo lỗi</button>
     </nav>
     <div id="status" role="status" aria-live="polite" hidden></div>
     <section id="automation-view">
-      <div class="intro"><h2>Auto Bug Detection</h2><p>Mở trang DEV cần kiểm tra. Quét tự động và xem bằng chứng ngay trên website.</p></div>
-      <div class="section studio-hero"><div class="studio-tag">DEV ONLY · LOCAL QA</div><h2>Kiểm thử trang hiện tại</h2><p class="muted small">Kiểm tra UI, HTTP status quan sát được và quy tắc số liệu khi có đủ căn cứ. Không tự ghi dữ liệu salon.</p><button id="qa-embed" class="wide">Mở Embedded QA Studio</button><button id="qa-smoke" class="primary wide">Scan for Bugs</button><div id="studio-state" class="muted small" aria-live="polite">Mở trang dev.nail360.info trước.</div></div>
-      <div class="section"><h2>QA Admin</h2><p class="muted small">Lịch sử kiểm thử, PASS / FAIL / SKIP, triage lỗi và xuất báo cáo.</p><button id="qa-admin" class="primary wide">Mở trang Admin</button></div>
-      <div class="section"><h3>Record &amp; Replay</h3><p class="muted small">Mở Embedded QA → Bắt đầu ghi → click tab ARIA hoặc ghi assertion → Lưu suite → Run suite. Không ghi thao tác nhập liệu, tạo/hủy lịch, thanh toán. Chỉ dùng salon DEV được phép kiểm thử.</p></div>
-      <p class="footnote">PASS chỉ áp dụng cho kiểm tra đã chạy. Chưa kiểm = thiếu dữ liệu/quy tắc. Các adapter dựa trên tên cột/label chuẩn, chưa xác minh DOM salon thật. Admin lưu cục bộ.</p>
+      <div class="scan-hero"><div class="studio-tag">KIỂM TRA TRANG ĐANG MỞ</div><h2 id="current-module">Mở trang salon DEV</h2><p id="current-route" class="muted small">Chọn màn hình cần kiểm tra.</p><button id="qa-smoke" class="primary wide scan-main">Quét lỗi trang này</button><p id="studio-state" role="status" aria-live="polite" class="muted small">Quét không thay đổi dữ liệu salon.</p></div>
+      <div id="scan-result" aria-live="polite"></div>
+      <div class="quick-links"><button id="go-compare">So sánh hai trang</button><button id="qa-admin">Mở lịch sử báo lỗi</button></div>
+      <details class="advanced"><summary>Tùy chọn khác</summary><button id="qa-embed" class="wide">Hiện công cụ ngay trên website</button><p class="muted small">Công cụ ghi kịch bản được giữ trong mục nâng cao trên website.</p></details>
     </section>
     <section id="compare-view" hidden>
-      <div class="intro"><h2>So sánh dữ liệu A / B</h2><p>Chọn cùng salon, ngày, trạng thái và phạm vi ở hai trang. Sau đó chụp từng bảng để tìm service hoặc appointment bị lệch.</p></div>
+      <div class="intro"><h2>Hai trang có khớp nhau không?</h2><p>Chụp trang A, chuyển sang trang B rồi chụp. Kết quả hiện tự động. Hai nguồn cần cùng salon, ngày, bộ lọc và đơn vị đếm.</p></div>
       <div id="slot-A" class="snapshot" data-slot="A"></div>
       <div id="slot-B" class="snapshot" data-slot="B"></div>
-      <section class="section settings" id="settings" hidden>
-        <h2>Quy tắc đối chiếu</h2>
+      <details class="section settings" id="settings" hidden>
+        <summary>Tùy chọn cách đếm</summary>
         <label for="split">Nếu một ô chứa nhiều service</label>
         <select id="split"><option value="none">Không tách — mỗi ô là một mục</option><option value="lines">Tách theo xuống dòng</option><option value="separators">Tách theo xuống dòng, dấu ; hoặc |</option><option value="comma">Tách thêm dấu phẩy (,)</option></select>
         <p class="muted small">So khớp không phân biệt hoa/thường và khoảng trắng. Muốn kiểm tra theo từng booking, dùng Appointment ID + Service nếu cả hai bảng đều có.</p>
-      </section>
+      </details>
       <section id="results" class="section results" hidden>
         <div class="heading-row"><h2>Kết quả đối chiếu</h2><span id="result-state" class="state-chip"></span></div>
         <div class="stats" id="stats"></div>
@@ -51,15 +51,17 @@
         <div id="result-table" class="table-scroll"></div>
         <div id="result-summary" class="muted small"></div>
         <div class="actions"><button id="copy-result" class="primary">Sao chép kết quả</button><button id="export-result">Xuất CSV</button></div>
-        <div class="actions"><button id="audit-ab" class="primary">Lưu đối chiếu vào Admin</button><button id="audit-money">Đối chiếu tổng tiền</button></div>
+        <div class="actions"><button id="audit-ab" class="primary">Lưu báo lỗi đối chiếu</button><button id="audit-money">So tổng tiền</button></div>
         <p class="muted small">Tổng tiền: chọn cùng cột chỉ số USD ở A/B, ví dụ Revenue. Chỉ lưu khi cùng salon, ngày, bộ lọc và phạm vi đầy đủ.</p>
-        <button id="create-bug" class="wide ghost">Tạo bug report từ kết quả →</button>
+        <button id="create-bug" class="wide ghost">Tự viết báo lỗi từ kết quả →</button>
       </section>
       <div class="bottom-row"><button id="load-demo" class="link-button">Thử dữ liệu mẫu 11 vs 9</button><button id="reset" class="link-button danger">Xóa dữ liệu</button></div>
       <p class="footnote">Dữ liệu chụp giữ trong phiên Chrome, không gửi ra ngoài. Chỉ đếm các dòng đã được web render; chưa tự lấy trang tiếp theo hoặc dữ liệu ẩn.</p>
     </section>
     <section id="qa-view" hidden>
-      <div class="intro"><h2>Ghi nhận lỗi nhanh</h2><p>Thu thập thông tin trang hiện tại và soạn bug report để gửi team dev.</p></div>
+      <div class="intro"><h2>Báo lỗi cho Dev</h2><p>Lỗi từ các lần quét và đối chiếu đã lưu.</p></div>
+      <div class="quick-links"><button id="report-history" class="primary">Mở lịch sử</button><button id="report-refresh">Làm mới</button></div><div id="report-state" role="status" class="muted small"></div><div id="recent-issues"></div>
+      <details id="manual-report" class="advanced"><summary>Tự viết báo lỗi</summary>
       <section class="section">
         <h3>Thông tin trang</h3>
         <button id="inspect" class="wide">Đọc thông tin tab hiện tại</button>
@@ -71,15 +73,16 @@
         <label for="bug-title">Tiêu đề</label><input id="bug-title" placeholder="[Appointment] Service count mismatch" maxlength="250">
         <label for="bug-module">Module</label><select id="bug-module"><option>Appointment</option><option>Service</option><option>Ticket / POS</option><option>Reports</option><option>Turn / Technician</option><option>Customer</option><option>Other</option></select>
         <label for="bug-env">Môi trường / phiên bản / salon test</label><input id="bug-env" placeholder="Dev / UAT / Production…" maxlength="300">
-        <label for="bug-steps">Steps to reproduce</label><textarea id="bug-steps" rows="4" placeholder="1. Open …&#10;2. Select the same date and filters …"></textarea>
-        <label for="bug-expected">Expected result</label><textarea id="bug-expected" rows="2" placeholder="What should happen?"></textarea>
-        <label for="bug-actual">Actual result</label><textarea id="bug-actual" rows="3" placeholder="What actually happened?"></textarea>
+        <label for="bug-steps">Cách tái hiện</label><textarea id="bug-steps" rows="4" placeholder="1. Open …&#10;2. Select the same date and filters …"></textarea>
+        <label for="bug-expected">Mong đợi</label><textarea id="bug-expected" rows="2" placeholder="What should happen?"></textarea>
+        <label for="bug-actual">Thực tế</label><textarea id="bug-actual" rows="3" placeholder="What actually happened?"></textarea>
         <label class="check-row"><input id="bug-include" type="checkbox"> Đính kèm chi tiết mục lệch A/B</label>
         <p class="muted small">Kiểm tra thông tin khách hàng trước khi gửi. Chi tiết A/B có thể chứa tên hoặc ID nếu mày chọn những cột đó.</p>
-        <button id="copy-bug" class="primary wide">Sao chép bug report</button>
+        <button id="copy-bug" class="primary wide">Sao chép báo lỗi</button>
       </section>
+      </details>
     </section>
   </main>
-  <footer>Independent support tool · Không phải extension chính thức của Nail360PRO</footer>
+  <footer>N360 Support · Lưu trên máy này</footer>
 </body>
 </html>

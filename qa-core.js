@@ -2,7 +2,7 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.N360QA=api;})(globalThis,()=>{
 'use strict';
 const ORIGIN='https://dev.nail360.info',KEY='n360QAStoreV1',MAX_STEPS=40,MAX_SUITES=40,MAX_RUNS=100;
-const TYPES=['clickTab','visible','text','count'],STATUSES=['PASS','FAIL','SKIP'],ISSUES=['Open','Investigating','Resolved','Ignored'];
+const TYPES=['clickTab','visible','text','count'],STATUSES=['PASS','FAIL','SKIP'],ISSUES=['Open','Investigating','Reported','Resolved','Ignored'];
 const str=(v,n=200)=>typeof v==='string'?v.trim().slice(0,n):'';
 function route(v){if(typeof v!=='string'||v.length>300||!v.startsWith('/')||v.startsWith('//')||/[?#\\\x00-\x1f]/.test(v))throw Error('Invalid DEV route');return v;}
 function isDev(url){try{return new URL(url).origin===ORIGIN;}catch{return false;}}
@@ -15,6 +15,6 @@ function store(v){return {suites:Array.isArray(v?.suites)?v.suites.slice(0,MAX_S
 function upsert(list,item,max){return [item,...list.filter(x=>x.id!==item.id)].slice(0,max);}
 function csv(rows){return '\ufeff'+rows.map(row=>row.map(v=>{let s=String(v??'');if(/^[\s\u0000-\u0020]*[=+\-@]/.test(s)||/^[\t\r\n]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';}).join(',')).join('\r\n');}
 function evidenceLabel(t){return t.status==='SKIP'?'Chưa kiểm / thiếu căn cứ':t.category==='environment'?'Môi trường':t.confidence==='measured'?'Chênh lệch / trạng thái đã đo':'Dấu hiệu cần xác minh';}
-function report(r,t){return [`[N360 QA] [${t.module||'QA'}] ${t.name}`,`Mã kiểm tra: ${t.code||'REGRESSION'}`,`Mức độ đề xuất: ${({high:'Cao',medium:'Trung bình',info:'Thông tin'})[t.severity]||'Chưa phân loại'} · ${evidenceLabel(t)}`,`Môi trường: DEV`, `Kết quả: ${t.status}`,`Trang: ${r.route}`,`Vị trí: ${t.location||'Bước kiểm tra'}`,`Thời điểm: ${r.at}`,`Run ID: ${r.id}`,'','Cách tái hiện:',t.steps||'Mở đúng trang DEV, cùng salon và bộ lọc → chạy lại kiểm tra → xác minh thủ công.','','Mong đợi:',t.expected||'Chưa có','','Thực tế:',t.actual||'Chưa có','','Ảnh hưởng:',t.impact||'Cần xác minh','','Việc cần làm:',t.action||'Kiểm tra lại dữ liệu, phạm vi và bước test.','','Lưu ý: Kết quả tự động không phải xác nhận nguyên nhân gốc hoặc bug nghiệp vụ.'].join('\n');}
+function report(r,t){return [`[N360 QA] [${t.module||'QA'}] ${t.name}`,`Mã kiểm tra: ${t.code||'REGRESSION'}`,`Mức độ đề xuất: ${({high:'Cao',medium:'Trung bình',info:'Thông tin'})[t.severity]||'Chưa phân loại'} · ${evidenceLabel(t)}`,`Môi trường: DEV`, `Kết quả: ${{FAIL:'Bất thường cần xác minh',PASS:'Đạt trong phạm vi đã kiểm',SKIP:'Chưa đủ căn cứ'}[t.status]||t.status}`,`Trang: ${r.route}`,`Vị trí: ${t.location||'Bước kiểm tra'}`,`Thời điểm: ${r.at}`,`Run ID: ${r.id}`,'','Cách tái hiện:',t.steps||'Mở đúng trang DEV, cùng salon và bộ lọc → chạy lại kiểm tra → xác minh thủ công.','','Mong đợi:',t.expected||'Chưa có','','Thực tế:',t.actual||'Chưa có','','Ảnh hưởng:',t.impact||'Cần xác minh','','Việc cần làm:',t.action||'Kiểm tra lại dữ liệu, phạm vi và bước test.','','Lưu ý: Kết quả tự động không phải xác nhận nguyên nhân gốc hoặc bug nghiệp vụ.'].join('\n');}
 return {ORIGIN,KEY,MAX_STEPS,MAX_SUITES,MAX_RUNS,TYPES,STATUSES,ISSUES,isDev,route,step,suite,summarize,run,store,upsert,csv,report,evidenceLabel};
 });

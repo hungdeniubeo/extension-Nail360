@@ -1,8 +1,28 @@
 # extension-Nail360
 
-# N360 QA Automation Studio v1.2.2
+# N360 Support v2.0.0
 
 Extension Chrome Manifest V3 độc lập dành cho hỗ trợ kỹ thuật / QA của salon NAIL360PRO. Không phải sản phẩm chính thức của Nail360PRO.
+
+
+## v2.0.0 — Trợ lý Support đơn giản hơn
+
+**Chỉ có 3 tab:** Quét lỗi, So sánh, Báo lỗi. Mở đúng trang NAIL360PRO DEV → **Quét lỗi trang này**. Không cần chọn smoke test, suite hay mở cửa sổ nhúng để quét. Kết quả lưu vào lịch sử cục bộ và hiển thị ngay ở panel.
+
+- Kết luận rõ: phát hiện bất thường (chưa tự xác nhận nguyên nhân gốc), chưa đủ căn cứ, hoặc chưa thấy lỗi trong phạm vi kiểm. Không lấy số kiểm tra kỹ thuật đạt làm bằng chứng nghiệp vụ đúng. Từng bất thường có số liệu mong đợi/thực tế, hướng xử lý, vị trí, cách tái hiện và nút sao chép báo lỗi.
+- Calendar Appointment: nhận diện thử nghiệm từ các nhãn New Appointment / Daily View / All Technician. Nếu không đọc được danh sách ID hoặc tổng/phân trang đủ rõ, báo chưa kiểm được số lịch hẹn, không đếm ô giờ thành booking và không coi lịch trống là lỗi. Adapter vẫn cần xác minh trên salon thật.
+- So sánh: chụp A, chuyển trang và chụp B, kết quả tính tự động theo cột đã chọn. Chọn vùng/dán và cách tách ô nằm trong mục tùy chọn. Xác nhận cùng salon, ngày, trạng thái, phạm vi và đơn vị trước khi lưu báo cáo. Mẫu 11/9 không lưu vào lịch sử thật. Kiểm tra tên service trước khi đưa vào báo cáo.
+- Báo lỗi: xem các bất thường đang theo dõi, sao chép báo cáo tiếng Việt, cập nhật Chưa báo Dev / Đang xác minh / Đã báo Dev / Đã xử lý / Bỏ qua. Đánh dấu Đã báo Dev không tự gửi tin. Mở lịch sử xem các lần quét, chi tiết, lỗi đã đóng, xuất CSV/JSON. Giữ nguyên storage key và suite trước đây.
+- Công cụ nhúng: mở Quét lỗi → Tùy chọn khác → Hiện công cụ ngay trên website. Ghi/phát lại và kiểm tra kỹ thuật cơ bản nằm trong Tùy chọn nâng cao. Không tự tạo/hủy booking, thanh toán hoặc gửi dữ liệu salon lên server.
+- Bộ Auto Updater từ v1.2.1 không đổi: cùng quyền, entrypoint và thư mục. Đóng các cửa sổ extension/Studio, lưu và xóa dữ liệu A/B tạm nếu có, để cơ chế tự cập nhật áp dụng khi rảnh. Tải lại website sau khi đổi version nếu còn overlay cũ. Không gỡ extension nếu muốn giữ lịch sử.
+
+Kiểm thử v2: `node --test tests/*.cjs` (46 bài logic/mock); `bash tests/updater-commit-test.sh`; `python tests/browser_test.py`, `python tests/qa_browser_test.py`, `python tests/audit_browser_test.py`, `python tests/support_browser_test.py` (Chromium với trang fixture và bridge Chrome giả lập). Chưa xác minh Chrome/macOS thật hoặc DOM salon sau đăng nhập. Các quy tắc nghiệp vụ v1.2.0 vẫn có giới hạn như dưới đây, không tự kiểm thử mọi hành vi của website.
+
+---
+
+## Tài liệu các phiên bản trước
+
+Các bước/giao diện trong phần lịch sử dưới đây mô tả phiên bản cũ, v2.0.0 thay đổi cách dùng như trên.
 
 ## Cài đặt
 

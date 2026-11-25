@@ -1,0 +1,10 @@
+const test=require('node:test'),assert=require('node:assert/strict'),V=require('../support-view.js'),A=require('../audit-core.js'),Q=require('../qa-core.js');
+const s=(status,category='technical')=>({status,category});
+test('technical passes alone cannot produce green business conclusion',()=>{const x=V.summary([s('PASS'),s('PASS'),s('SKIP')]);assert.equal(x.tone,'unknown');assert.match(x.description,/Chưa kiểm được số liệu nghiệp vụ/)});
+test('missing business coverage remains unknown even when some checks pass',()=>assert.equal(V.summary([s('PASS','business'),s('SKIP','business')]).tone,'unknown'));
+test('all applicable business and technical checks pass',()=>assert.equal(V.summary([s('PASS','business'),s('PASS')]).tone,'ok'));
+test('failures prioritized even with incomplete coverage',()=>{const r=V.summary([s('FAIL','business'),s('SKIP','business'),s('PASS')]);assert.equal(r.tone,'fail');assert.equal(r.issues.length,1);assert.equal(r.businessSkipped,1)});
+test('offline alone is environment issue, not product bug',()=>assert.match(V.summary([s('FAIL','environment')]).heading,/môi trường/));
+test('legacy smoke title localized',()=>assert.equal(V.title({name:'Document ready'}),'Trang tải xong'));
+test('reported state stays open until resolved',()=>{assert(Q.ISSUES.includes('Reported'));assert.equal(V.statusName('Reported'),'Đã báo Dev');assert(V.isOpen({issue:'Reported'}));assert(!V.isOpen({issue:'Resolved'}))});
+test('appointment calendar with no count is explicitly unknown, not a fault',()=>{const results=A.scan({module:'Appointment',calendar:true,ready:true,busy:false,online:true,content:true,fatal:[],api:{observed:0,failed:[]},tables:[],groups:[]});const check=results.find(t=>t.code==='APPT-COUNT');assert.equal(check.status,'SKIP');assert.match(check.actual,/khung giờ/);assert.equal(V.summary(results).tone,'unknown');assert(!results.some(t=>t.status==='FAIL'))});

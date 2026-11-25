@@ -1,9 +1,21 @@
 # extension-Nail360
 
-# N360 Support v2.1.0
+# N360 Support v2.2.0
 
 Extension Chrome Manifest V3 độc lập dành cho hỗ trợ kỹ thuật / QA của salon NAIL360PRO. Không phải sản phẩm chính thức của Nail360PRO.
 
+
+## v2.2.0 — Deep Test (kịch bản thao tác thật)
+
+Chọn module → **Deep Test**. Bản này có runner thực hiện click, nhập dữ liệu test, select, checkbox, tải lại trang và đợi điều kiện kiểm tra DOM thực tế. Chưa có sẵn kịch bản nghiệp vụ được xác nhận trên salon NAIL360PRO sau đăng nhập. Không tính Quick Scan là Deep Test và không tạo kết quả mẫu.
+
+**Cấu hình một lần:** mở module đúng salon DEV, vào Tạo / cấu hình kịch bản. Chọn loại bước, chọn phần tử thật trên trang (không kích hoạt click của salon), nhập tên bước, giá trị mong đợi nếu cần, rồi Thêm bước. Thao tác tay một lần để đi tiếp tới màn hình kế, chọn bước tiếp theo. Kịch bản phải có phép kiểm nội dung, giá trị hoặc số dòng và kết thúc bằng assertion. Ví dụ: chọn nút New Appointment, chọn ô nhập dữ liệu, chọn nút Save, chọn phần tử xác minh đã lưu, thêm Reload và chọn phép kiểm dữ liệu sau F5. Bước Đối chiếu số liệu nghiệp vụ trên trang dùng lại bộ audit hiện có và trả BLOCKED nếu thiếu dữ liệu. Dùng `{{run}}` trong dữ liệu/giá trị mong đợi để tạo mã test riêng mỗi lượt. Có thể nhập JSON vào bản nháp, xem lại và lưu; không tự chạy kịch bản nhập. Xuất cấu trúc module chỉ thu selector/nhãn control nhìn thấy, không lấy giá trị ô nhập; kiểm tra trước khi chia sẻ.
+
+**Chạy:** chọn kịch bản đã lưu hoặc Chạy tất cả trong module. Chọn salon DEV test, quay về trạng thái bắt đầu; app tự thao tác trên tab đó, chờ selector/điều kiện theo timeout, không thử lại click hoặc submit nếu mất phản hồi. Không thao tác tay trong lúc chạy. Chạy tất cả dừng khi lỗi/chặn để tránh dây chuyền dữ liệu sai. Dừng chỉ ngăn bước mới, không đảo ngược thao tác đã gửi. Giữ side panel mở; đóng panel/ngắt Chrome có thể để lại lượt dở dang và dữ liệu test đã tạo. Hỗ trợ DOM chính, không iframe/shadow DOM, CAPTCHA, trusted user gestures; script click/input là sự kiện DOM tổng hợp, không phải Playwright/CDP native. Quy tắc nghiệp vụ phải được xác nhận từ test case, không tự suy đoán. Không tự gửi tin, thu tiền, refund, nhập mật khẩu, token hoặc chạy ngoài DEV; bộ chặn nhãn không thay cho kiểm duyệt kịch bản và sandbox thanh toán/tin nhắn.
+
+**Bằng chứng:** PASS là điều kiện đã quan sát hoặc hành động đã gửi (không đồng nghĩa nghiệp vụ đúng); FAIL là điều kiện đối chiếu có giá trị sai tới hết timeout; BLOCKED là thiếu selector/quyền/route/timeout không có dữ liệu xác minh; SKIP là chưa chạy. Log ghi thời điểm, thời lượng, route, selector, giá trị mong đợi/thực tế, HTTP cùng origin từ Resource Timing nếu trình duyệt cung cấp, ảnh lỗi tùy chọn nếu Chrome có quyền chụp tab. Không ghi toàn bộ Console/Network, không gửi log lên server. HTTP 5xx quan sát được được ghi thêm bất thường kỹ thuật cần xác minh, không suy đoán là nguyên nhân của bước. Giữ tối đa 24 lượt Deep Test và khoảng 4 MB tổng log (bỏ lượt cũ khi vượt giới hạn), ảnh JPEG tối đa 240 KB/lượt và tổng 2 MB, lưu riêng trong Chrome storage.local; đồng bộ kết quả đã kết thúc vào Admin cũ. Các kết quả BLOCKED/SKIP chuyển thành chưa kiểm trong Admin. Xuất JSON hoặc sao chép log trước khi gửi Dev; chỉ dùng dữ liệu test và xem lại thông tin nhạy cảm.
+
+Không thay quyền manifest/entrypoint, tương thích cơ chế cập nhật hiện có. Test source: `node --test tests/*.cjs`, `python tests/deep_browser_test.py` với Chromium fixture. Chưa xác minh trên salon DEV thật.
 
 ## v2.1.0 — Kiểm thử theo module
 

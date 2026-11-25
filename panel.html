@@ -13,13 +13,15 @@
   <script src="updates.js" defer></script>
   <script src="support-view.js" defer></script>
   <script src="module-catalog.js" defer></script>
+  <script src="deep-core.js" defer></script>
+  <script src="deep-ui.js" defer></script>
   <script src="studio.js" defer></script>
 </head>
 <body>
   <header class="header">
-    <div class="brand-row"><img src="icons/logo.svg" alt="" width="38" height="38"><div><h1>N360 Support</h1><div class="subhead">TRỢ LÝ SUPPORT · DEV</div></div><span class="version">v2.1.0</span></div>
-    <div class="privacy"><span class="dot"></span> Chỉ đọc dữ liệu trên trình duyệt</div>
-    <div class="update-strip"><span id="update-state" aria-live="polite">Phiên bản v2.1.0</span><button id="reload-extension" type="button" hidden>Tải lại extension</button></div>
+    <div class="brand-row"><img src="icons/logo.svg" alt="" width="38" height="38"><div><h1>N360 Support</h1><div class="subhead">TRỢ LÝ SUPPORT · DEV</div></div><span class="version">v2.2.0</span></div>
+    <div class="privacy"><span class="dot"></span> DEV · Kiểm thử theo kịch bản được chọn</div>
+    <div class="update-strip"><span id="update-state" aria-live="polite">Phiên bản v2.2.0</span><button id="reload-extension" type="button" hidden>Tải lại extension</button></div>
   </header>
   <main>
     <nav class="tabs" aria-label="Chức năng">
@@ -30,8 +32,16 @@
     <div id="status" role="status" aria-live="polite" hidden></div>
     <section id="automation-view">
       <section id="module-picker" class="module-picker"><div class="intro"><h2>Chọn module kiểm thử</h2><p>Mỗi module có phạm vi và lịch sử riêng.</p></div><div id="module-grid" class="module-grid"></div><details class="module-other"><summary>Các mục khác</summary><div id="module-extra" class="module-grid"></div></details></section>
-      <section id="module-detail" hidden><button id="module-back" class="module-back">← Tất cả module</button><div class="module-cover"><p id="module-title" class="studio-tag"></p><h2 id="module-heading"></h2><p id="module-hint" class="muted small"></p><h3>Kiểm tra hiện có</h3><ul id="module-ready"></ul><details><summary>Kịch bản tự thao tác chưa triển khai</summary><ul id="module-planned"></ul></details></div>
-      <div class="scan-hero"><div class="studio-tag">TRANG KIỂM THỬ</div><h2 id="current-module">Mở trang salon DEV</h2><p id="current-route" class="muted small">Chọn màn hình cần kiểm tra.</p><button id="qa-smoke" class="primary wide scan-main">Quét lỗi trang này</button><p id="studio-state" role="status" aria-live="polite" class="muted small">Kiểm tra hiện có chỉ đọc dữ liệu, chưa tự tạo giao dịch.</p></div>
+      <section id="module-detail" hidden><button id="module-back" class="module-back">← Tất cả module</button><div class="module-cover"><p id="module-title" class="studio-tag"></p><h2 id="module-heading"></h2><p id="module-hint" class="muted small"></p><h3>Quick Scan hiện có</h3><ul id="module-ready"></ul><details><summary>Phạm vi nghiệp vụ cần cấu hình</summary><ul id="module-planned"></ul></details></div>
+      <section id="deep-workspace" class="deep-workspace" hidden>
+        <div class="studio-tag">DEEP TEST · KIỂM THỬ THẬT</div><h2>Chạy kịch bản tự động</h2><p class="muted small" id="deep-count"></p><p id="deep-no-cases" class="deep-empty">Chưa có kịch bản thật cho module này. Cấu hình một lần trên DEV, sau đó chạy lại tự động. Không tự báo PASS khi chưa có phép kiểm.</p>
+        <select id="deep-case" aria-label="Kịch bản đã lưu"></select><button id="deep-run" class="primary wide">Chạy kịch bản</button><div class="actions"><button id="deep-run-all">Chạy tất cả</button><button id="deep-stop" disabled>Dừng</button></div>
+        <label class="check-row"><input type="checkbox" id="deep-screenshot"> Chụp ảnh khi lỗi (lưu cục bộ, nếu Chrome cho phép)</label><p id="deep-status" class="small muted" role="status" aria-live="polite"></p>
+        <details id="deep-editor" class="advanced"><summary>Tạo / cấu hình kịch bản</summary><p class="small muted">Chọn thao tác hoặc điều kiện kiểm tra. Chọn phần tử thật trên web rồi thêm bước. Tự thao tác một lần để đến màn hình kế tiếp; cuối kịch bản phải có phép kiểm dữ liệu. Chỉ nhập dữ liệu test, không dùng mật khẩu, thanh toán thật hoặc gửi marketing.</p><div class="actions"><button id="deep-new">Kịch bản mới</button><button id="deep-load">Sửa đã lưu</button><button id="deep-delete">Xóa</button></div><div class="actions"><button id="deep-import">Nhập JSON</button><button id="deep-export-case">Xuất kịch bản</button></div><input id="deep-import-file" type="file" accept="application/json,.json" hidden><label for="deep-name">Tên kịch bản</label><input id="deep-name" maxlength="100" placeholder="VD: Tạo lịch, lưu và kiểm tra lại"><label for="deep-kind">Loại bước</label><select id="deep-kind"></select><label for="deep-label">Tên bước (tùy chọn)</label><input id="deep-label" maxlength="120" placeholder="VD: Bấm New Appointment"><div id="deep-value-wrap" hidden><label for="deep-value">Dữ liệu test / kết quả mong đợi</label><input id="deep-value" maxlength="300"></div><label for="deep-timeout">Thời hạn chờ (giây)</label><input id="deep-timeout" type="number" min="1" max="20" value="8"><button id="deep-pick" class="wide">Chọn phần tử trên web</button><p class="small muted" id="deep-target">Chưa chọn phần tử</p><button id="deep-add" class="wide">Thêm bước</button><div id="deep-step-count" class="small muted"></div><div id="deep-steps"></div><button id="deep-save" class="primary wide">Lưu kịch bản</button></details>
+        <div class="advanced"><p class="small muted">Chưa có kịch bản? Xuất cấu trúc màn hình để xây dựng test case đúng giao diện NAIL360PRO. Không xuất giá trị ô nhập.</p><button id="deep-inspect" class="wide">Xuất cấu trúc module</button></div>
+        <div class="deep-history"><label for="deep-log-select">Lịch sử kiểm thử sâu</label><select id="deep-log-select"></select><div id="deep-log" aria-live="polite"></div><div class="actions"><button id="deep-copy" disabled>Sao chép log</button><button id="deep-export" disabled>Xuất JSON</button></div></div>
+      </section>
+      <div class="scan-hero"><div class="studio-tag">QUICK SCAN · KIỂM TRA DỮ LIỆU</div><h2 id="current-module">Mở trang salon DEV</h2><p id="current-route" class="muted small">Chọn màn hình cần kiểm tra.</p><button id="qa-smoke" class="primary wide scan-main">Quét lỗi trang này</button><p id="studio-state" role="status" aria-live="polite" class="muted small">Kiểm tra hiện có chỉ đọc dữ liệu, chưa tự tạo giao dịch.</p></div>
       <div id="scan-result" aria-live="polite"></div>
       <div class="quick-links"><button id="go-compare">So sánh hai trang</button><button id="module-report">Báo lỗi module này</button></div>
       <details class="advanced"><summary>Tùy chọn khác</summary><button id="qa-admin" class="wide">Mở lịch sử báo lỗi</button><button id="qa-embed" class="wide">Hiện công cụ ngay trên website</button><p class="muted small">Công cụ ghi kịch bản được giữ trong mục nâng cao trên website.</p></details></section>

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Nail360PRO Support Toolkit",
   "short_name": "N360 Support",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "N360 Support: module-based DEV workflows, assertions and evidence logs.",
   "minimum_chrome_version": "116",
   "permissions": [

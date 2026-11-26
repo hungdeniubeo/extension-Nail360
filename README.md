@@ -1,9 +1,15 @@
 # extension-Nail360
 
-# N360 Support v2.2.0
+# N360 Support v2.2.1
 
 Extension Chrome Manifest V3 độc lập dành cho hỗ trợ kỹ thuật / QA của salon NAIL360PRO. Không phải sản phẩm chính thức của Nail360PRO.
 
+
+## v2.2.1 — Home: khảo sát Ticket, Waiting List và Turn
+
+Dựa trên giao diện Home DEV đã được người dùng khảo sát. Quick Scan nhận diện các điều khiển Search, View Turn List, Add Service Ticket và ghi nhận nhãn Waiting List / Walk-In, Turn dạng số. Không coi nhãn Walk-In là số khách/Ticket, không suy đoán hai vùng có cùng trạng thái, không coi Turn 0 là lỗi. Quy tắc nghiệp vụ chưa được xác nhận nên kết quả ghi chưa kiểm.
+
+Xuất cấu trúc module Home thêm `home`: số nhãn quan sát được, số Turn đọc được, đường dẫn DOM cấu trúc, tọa độ và bốn cấp vùng chứa, tổng HTTP status quan sát được (không request/response body, URL API, tên khách/thợ hoặc giá trị ô nhập trong phần `home`). Danh sách controls cũ vẫn cần xem lại nhãn/selector trước khi chia sẻ. Giới hạn 12.000 phần tử ứng viên và 100 tín hiệu; không đọc iframe/shadow DOM, không bấm tạo ticket. Chặn thêm nhãn Check Out có dấu cách trong Deep Test. Không đổi quyền manifest, updater hoặc dữ liệu đã lưu. Chưa xác minh các phép kiểm mới trực tiếp trên DEV.
 
 ## v2.2.0 — Deep Test (kịch bản thao tác thật)
 

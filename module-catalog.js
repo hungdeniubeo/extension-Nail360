@@ -3,7 +3,7 @@
 'use strict';
 const ORIGIN='https://dev.nail360.info';
 const items=[
- {id:'home',title:'HOME',hint:'Trang chính và tổng quan',segments:['home','dashboard'],known:'/light/admin/home',available:[],planned:['Các nút và điều hướng','Số liệu tổng quan, đối chiếu với Reports']},
+ {id:'home',title:'HOME',hint:'Ticket, Waiting List và Turn',segments:['home','dashboard'],known:'/light/admin/home',available:['Nhận diện Search, View Turn List, Add Service Ticket','Quan sát nhãn Waiting List / Walk-In và Turn, không suy đoán nghiệp vụ'],planned:['Tạo/sửa Ticket, lọc trạng thái, tìm kiếm','Xác minh Waiting List, gán technician và quy tắc Turn']},
  {id:'appointment',title:'APPOINTMENT',hint:'Lịch hẹn và dịch vụ',segments:['appointment','appointments','booking','bookings','calendar'],known:'/light/admin/appointment',available:['Đếm lịch hẹn có ID và phân trang rõ','Kiểm tra ID dòng dịch vụ khi đọc được'],planned:['Tạo, sửa, đổi giờ, hủy lịch','Check-in và chuyển sang Ticket','Kiểm tra trùng lịch, technician']},
  {id:'reports',title:'REPORTS',hint:'Doanh thu và báo cáo',segments:['report','reports','revenue','sales-report'],available:['Đối chiếu tổng cùng chỉ số Sales, Revenue, Tip, Tax khi bảng đầy đủ'],planned:['Chọn khoảng ngày, bộ lọc','Đối chiếu giao dịch test với báo cáo','Kiểm tra void/refund theo quy tắc']},
  {id:'marketing',title:'MARKETING',hint:'Campaign và khách hàng',segments:['marketing','campaign','campaigns'],available:[],planned:['Tạo và sửa chiến dịch test','Kiểm tra bộ lọc khách và preview','Kiểm tra cấu hình, không gửi tin ra ngoài']},

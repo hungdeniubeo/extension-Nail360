@@ -1,7 +1,7 @@
 # N360 Support Windows updater. Windows PowerShell 5.1, current user only.
 # Installs runtime files from the trusted repo; never executes scripts from a downloaded ZIP.
 [CmdletBinding()]
-param([ValidateSet('Install','Check','Status','Rollback','Stop')][string]$Mode='Install')
+param([ValidateSet('Install','Check','Status','Rollback','Stop','Repair')][string]$Mode='Install')
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 2
 $Base = Join-Path $env:LOCALAPPDATA 'N360 Support'
@@ -132,26 +132,94 @@ function Check-Update {
     if (Test-Path -LiteralPath $Hold) { Remove-Item -LiteralPath $Hold -Force }
     Log ('Downloaded ' + $actual + ' (previous: ' + $current + '). Chrome reloads when idle.')
 }
+function Background-Action {
+    # wscript.exe is a GUI host. It waits for the hidden child and returns its exit code.
+    # No downloaded code is executed; the launcher is embedded and written locally.
+    if (!(Test-Path -LiteralPath $InstalledScript -PathType Leaf)) { throw 'Installed updater.ps1 not found.' }
+    $hostExe = Join-Path $env:SystemRoot 'System32\wscript.exe'
+    $launcherPath = Join-Path $Base 'updater-launcher.js'
+    if (!(Test-Path -LiteralPath $hostExe -PathType Leaf)) { throw 'Windows Script Host is unavailable. Use manual CHECK-UPDATE.cmd.' }
+    $source = @'
+// N360 Support: windowless local updater launcher; only the installed script.
+var shell = new ActiveXObject('WScript.Shell');
+var fso = new ActiveXObject('Scripting.FileSystemObject');
+var base = fso.GetParentFolderName(WScript.ScriptFullName);
+var power = fso.BuildPath(shell.ExpandEnvironmentStrings('%SystemRoot%'), 'System32\\WindowsPowerShell\\v1.0\\powershell.exe');
+var updater = fso.BuildPath(base, 'updater.ps1');
+function quote(path) {
+    if (/["%\r\n]/.test(path)) throw new Error('Unsupported path characters.');
+    return '"' + path + '"';
+}
+var rc = 1;
+try {
+    var probe = WScript.Arguments.length === 1 && WScript.Arguments.Item(0) === '--probe';
+    if (!probe && WScript.Arguments.length !== 0) throw new Error('Unexpected launcher arguments.');
+    if (!fso.FileExists(power) || !fso.FileExists(updater)) throw new Error('Installed PowerShell or updater is missing.');
+    var args = probe ? ' -NoProfile -NonInteractive -Command "exit 0"' : ' -NoProfile -NonInteractive -ExecutionPolicy Bypass -File ' + quote(updater) + ' -Mode Check';
+    rc = shell.Run(quote(power) + args, 0, true);
+} catch (e) {
+    try {
+        var log = fso.OpenTextFile(fso.BuildPath(base, 'updater.log'), 8, true);
+        log.WriteLine(new Date().toUTCString() + ' N360: background launcher failed.');
+        log.Close();
+    } catch (ignored) {}
+}
+WScript.Quit(rc);
+'@
+    [IO.File]::WriteAllText($launcherPath,$source,$Utf8)
+    $arguments = '//B //NoLogo //E:JScript "' + $launcherPath + '"'
+    # Probe actual host and hidden PowerShell child; do not fetch anything or modify the task yet.
+    $probe = Start-Process -FilePath $hostExe -ArgumentList ($arguments + ' --probe') -Wait -PassThru
+    if ($probe.ExitCode -ne 0) { throw ('Background host probe failed: ' + $probe.ExitCode + '. Contact IT if Windows Script Host is blocked.') }
+    return New-ScheduledTaskAction -Execute $hostExe -Argument $arguments -WorkingDirectory $Base
+}
+function Repair-Terminal {
+    # Repair only the task created by this installer, preserving the user's current schedule and enabled state.
+    $task = Get-ScheduledTask -TaskName $TaskName -TaskPath '\' -ErrorAction Stop
+    $oldActions = @($task.Actions)
+    $oldPower = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    $oldArgs = '-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "' + $InstalledScript + '" -Mode Check'
+    $hostExe = Join-Path $env:SystemRoot 'System32\wscript.exe'
+    $newArgs = '//B //NoLogo //E:JScript "' + (Join-Path $Base 'updater-launcher.js') + '"'
+    if ($oldActions.Count -ne 1) { throw 'Unexpected task actions; no changes made.' }
+    if (!(($oldActions[0].Execute -ieq $oldPower -and $oldActions[0].Arguments -ceq $oldArgs) -or ($oldActions[0].Execute -ieq $hostExe -and $oldActions[0].Arguments -ceq $newArgs))) { throw 'Task action is not recognized as the N360 updater; no changes made.' }
+    $beforeEnabled = [bool]$task.Settings.Enabled
+    if ($task.State -eq 'Running') { throw 'Updater is currently running. Close this repair and retry after the current check finishes.' }
+    $backup = Join-Path $Base ('task-before-terminal-fix-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '.xml')
+    Export-ScheduledTask -TaskName $TaskName -TaskPath '\' | Set-Content -LiteralPath $backup -Encoding Unicode
+    $action = Background-Action
+    Set-ScheduledTask -TaskName $TaskName -TaskPath '\' -Action $action -ErrorAction Stop | Out-Null
+    $verified = Get-ScheduledTask -TaskName $TaskName -TaskPath '\' -ErrorAction Stop
+    if (@($verified.Actions).Count -ne 1 -or $verified.Actions[0].Execute -ine $action.Execute -or $verified.Actions[0].Arguments -cne $action.Arguments -or [bool]$verified.Settings.Enabled -ne $beforeEnabled) {
+        Set-ScheduledTask -TaskName $TaskName -TaskPath '\' -Action $oldActions -ErrorAction Stop | Out-Null
+        throw 'Task verification failed; previous action restored.'
+    }
+    Log ('Terminal fix applied. Task state: ' + $verified.State + '. Existing schedule and enabled state retained.')
+    Log ('Previous task definition saved: ' + $backup)
+    Log 'No Chrome files or history changed. Use STATUS.cmd to verify the next scheduled result (0 means success).'
+}
 function Register-Agent {
-    # Task Scheduler stores an interactive, least-privilege task for this Windows account.
-    $power = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
-    $taskArgs = '-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "' + $InstalledScript + '" -Mode Check'
+    # Same current-user, five-minute task; a windowless host starts the local updater.
+    $action = Background-Action
+    $power = $action.Execute
+    $taskArgs = $action.Arguments
     $sid = $Identity.User.Value
     $start = (Get-Date).AddMinutes(1).ToString('yyyy-MM-ddTHH:mm:ss')
     $cmd = [Security.SecurityElement]::Escape($power)
     $argXml = [Security.SecurityElement]::Escape($taskArgs)
+    $dirXml = [Security.SecurityElement]::Escape($Base)
     $xml = @"
 <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo><Description>N360 Support: check trusted GitHub runtime updates every five minutes.</Description></RegistrationInfo>
   <Triggers><TimeTrigger><Repetition><Interval>PT5M</Interval></Repetition><StartBoundary>$start</StartBoundary><Enabled>true</Enabled></TimeTrigger></Triggers>
   <Principals><Principal id="Author"><UserId>$sid</UserId><LogonType>InteractiveToken</LogonType><RunLevel>LeastPrivilege</RunLevel></Principal></Principals>
   <Settings><MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy><DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries><StopIfGoingOnBatteries>false</StopIfGoingOnBatteries><StartWhenAvailable>true</StartWhenAvailable><Enabled>true</Enabled><ExecutionTimeLimit>PT5M</ExecutionTimeLimit></Settings>
-  <Actions Context="Author"><Exec><Command>$cmd</Command><Arguments>$argXml</Arguments></Exec></Actions>
+  <Actions Context="Author"><Exec><Command>$cmd</Command><Arguments>$argXml</Arguments><WorkingDirectory>$dirXml</WorkingDirectory></Exec></Actions>
 </Task>
 "@
     Register-ScheduledTask -TaskName $TaskName -Xml $xml -Force -ErrorAction Stop | Out-Null
     if (!(Get-ScheduledTask -TaskName $TaskName -ErrorAction Stop)) { throw 'Task registration could not be verified.' }
-    Log 'Auto updater registered (every five minutes).'
+    Log 'Auto updater registered (every five minutes; no console window).'
 }
 function Install-N360 {
     if (!(Test-Path -LiteralPath $Active)) {
@@ -192,6 +260,7 @@ function Rollback-N360 {
 try {
     if ($env:OS -ne 'Windows_NT') { throw 'This installer requires Windows.' }
     [void][IO.Directory]::CreateDirectory($Base)
+    if ($Mode -eq 'Repair') { Repair-Terminal; exit 0 }
     if ($Mode -eq 'Status') {
         if (Test-Path -LiteralPath $Active) { Log ('Disk version: ' + (Read-Manifest (Join-Path $Active 'manifest.json'))) } else { Log 'Extension is not installed.' }
         $task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue

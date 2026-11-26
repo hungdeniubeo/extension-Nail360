@@ -10,6 +10,14 @@ The installer writes the extension into `%LOCALAPPDATA%\N360 Support\extension` 
 
 `AUTO UPDATE NOT ENABLED` means the scheduled task could not be registered. The extension can still be loaded from the folder if installation completed; `CHECK-UPDATE.cmd` is the manual fallback. If company policy blocks PowerShell, developer mode or tasks, consult IT; do not circumvent the restrictions. If only the bundled runtime is needed, extract `runtime.zip` separately and Load unpacked its inner folder containing manifest.json (that separate folder is not auto-updated).
 
+## Fix the periodic PowerShell / Terminal flash
+
+Old Windows installations launched PowerShell directly from the scheduled task, which can briefly show a console despite `-WindowStyle Hidden`. The revised installer uses the windowless Windows Script Host (`wscript.exe`, JScript) to start the same installed updater with a hidden child window and wait for its exit code. It retains the five-minute schedule, current-user privileges, and updater log. No extra Chrome permission or runtime update is required.
+
+For an existing installation, extract the repair ZIP (or download the current repository ZIP) and run `windows/FIX-TERMINAL.cmd` beside `updater.ps1` (in the repair ZIP they are at the root). It verifies the specific current-user N360 task, saves its XML definition in the N360 folder, probes the launcher before changing the task action, and preserves enabled state and the existing schedule. If the updater is currently running, retry when it finishes. The installed updater script and Chrome data are unchanged. Run `STATUS.cmd` after the next scheduled check; a last task result of 0 indicates success. If Script Host is disabled by IT policy, use the manual update option and ask IT; do not enable or circumvent it. The repair intentionally only accepts the original N360 task action or the new launcher action. Do not rerun the old installer after repairing the task; it would restore the old launch method.
+
+The launcher uses legacy Windows JScript (not VBScript); availability and actual window behavior require verification on Windows. The source is included in the local updater, not fetched dynamically.
+
 ## Updates and management
 
 - `CHECK-UPDATE.cmd`: check GitHub now.
